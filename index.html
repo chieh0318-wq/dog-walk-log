@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>🐾 狗狗散步日誌</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root {
+    --bg:#FFF8F0;--card:#fff;--amber:#F59E0B;--amber-light:#FEF3C7;--amber-dark:#D97706;
+    --green:#10B981;--green-light:#D1FAE5;--blue:#3B82F6;--blue-light:#DBEAFE;
+    --red:#EF4444;--red-light:#FEE2E2;--purple:#8B5CF6;--purple-light:#EDE9FE;
+    --text:#1C1917;--text-muted:#78716C;--border:#E7E5E4;
+    --shadow:0 2px 12px rgba(0,0,0,.08);--shadow-lg:0 8px 30px rgba(0,0,0,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);font-family:'Noto Sans TC',sans-serif;color:var(--text);min-height:100vh;padding-bottom:48px;}
+
+  /* HEADER */
+  .header{background:linear-gradient(135deg,#F59E0B,#EF7C00);padding:20px 20px 60px;position:relative;overflow:hidden;}
+  .header::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,.12);border-radius:50%;}
+  .header::after{content:'';position:absolute;bottom:-20px;left:30%;width:100px;height:100px;background:rgba(255,255,255,.08);border-radius:50%;}
+  .header-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+  .dog-name{font-family:'Nunito',sans-serif;font-size:28px;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.15);}
+  .dog-emoji{font-size:36px;}
+  .date-badge{background:rgba(255,255,255,.25);color:#fff;font-size:13px;font-weight:700;padding:6px 12px;border-radius:20px;backdrop-filter:blur(4px);}
+  .stats-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+  .stat-pill{background:rgba(255,255,255,.25);backdrop-filter:blur(4px);color:#fff;font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px;display:flex;align-items:center;gap:5px;}
+
+  .main{margin:-32px 16px 0;position:relative;z-index:10;}
+
+  /* SYNC BANNER */
+  .sync-banner{background:var(--blue-light);border:1.5px solid var(--blue);border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:flex-start;gap:10px;font-size:13px;color:#1E40AF;font-weight:500;line-height:1.5;}
+  .sync-banner .icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+
+  /* GPS CARD */
+  .gps-card{background:var(--card);border-radius:20px;padding:16px;box-shadow:var(--shadow-lg);margin-bottom:16px;}
+  .gps-card-title{font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .gps-btn-row{display:flex;gap:10px;margin-bottom:12px;}
+  .gps-start-btn,.gps-stop-btn{flex:1;padding:12px;border:none;border-radius:12px;color:#fff;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;}
+  .gps-start-btn{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 4px 14px rgba(16,185,129,.3);}
+  .gps-stop-btn{background:linear-gradient(135deg,var(--red),#DC2626);box-shadow:0 4px 14px rgba(239,68,68,.3);display:none;}
+  .gps-start-btn:active,.gps-stop-btn:active{transform:scale(.97);}
+  .gps-status{font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:6px;margin-bottom:10px;}
+  .gps-dot{width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0;}
+  .gps-dot.active{background:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:pulse 1.5s infinite;}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05);}}
+  #mapContainer{height:220px;border-radius:12px;overflow:hidden;display:none;border:2px solid var(--border);margin-bottom:10px;}
+  #mapContainer.visible{display:block;}
+  .gps-stats-row{display:flex;gap:8px;}
+  .gps-stat{flex:1;background:#F5F5F4;border-radius:10px;padding:8px 10px;text-align:center;}
+  .gps-stat .val{font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;}
+  .gps-stat .lbl{font-size:11px;color:var(--text-muted);font-weight:600;}
+  .past-routes-wrap{margin-top:14px;}
+  .past-route-item{background:#F5F5F4;border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .15s;}
+  .past-route-item:active{background:var(--blue-light);}
+  .route-info{flex:1;}
+  .route-title{font-size:13px;font-weight:700;}
+  .route-meta{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .route-map-preview{height:180px;border-radius:10px;overflow:hidden;display:none;border:2px solid var(--blue);margin-bottom:8px;}
+
+  /* ADD BUTTON */
+  .add-btn{width:100%;background:linear-gradient(135deg,#10B981,#059669);color:#fff;border:none;border-radius:18px;padding:18px;font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 20px rgba(16,185,129,.35);transition:all .2s;margin-bottom:16px;}
+  .add-btn:active{transform:scale(.97);}
+
+  /* FORM CARD */
+  .form-card{background:var(--card);border-radius:20px;padding:20px;box-shadow:var(--shadow-lg);margin-bottom:20px;display:none;}
+  .form-card.open{display:block;animation:slideDown .2s ease;}
+  @keyframes slideDown{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
+  .form-title{font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;margin-bottom:16px;}
+  .section-label{font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+  .toggle-group{display:flex;gap:8px;margin-bottom:16px;}
+  .toggle-btn{flex:1;padding:10px 6px;border:2px solid var(--border);border-radius:12px;background:#fff;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--text-muted);cursor:pointer;transition:all .15s;text-align:center;}
+  .toggle-btn.active{border-color:var(--amber);background:var(--amber-light);color:var(--amber-dark);}
+
+  /* TIME OF DAY */
+  .time-toggle-group{display:flex;gap:8px;margin-bottom:16px;}
+  .time-btn{flex:1;padding:12px 4px;border:2px solid var(--border);border-radius:14px;background:#fff;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--text-muted);cursor:pointer;transition:all .15s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .time-btn .t-icon{font-size:20px;}
+  .time-btn.morning.active{border-color:#F59E0B;background:#FEF3C7;color:#92400E;}
+  .time-btn.evening.active{border-color:#F97316;background:#FFEDD5;color:#C2410C;}
+  .time-btn.night.active{border-color:#6366F1;background:#EEF2FF;color:#4338CA;}
+
+  .note-input{width:100%;border:2px solid var(--border);border-radius:12px;padding:12px 14px;font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--text);resize:none;outline:none;transition:border-color .15s;margin-bottom:14px;background:#fff;}
+  .note-input:focus{border-color:var(--amber);}
+  .submit-btn{width:100%;background:linear-gradient(135deg,var(--amber),var(--amber-dark));color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(245,158,11,.35);transition:all .2s;}
+  .submit-btn:active{transform:scale(.98);}
+
+  .attach-route-box{background:#F0FDF4;border:1.5px solid var(--green);border-radius:10px;padding:10px 12px;font-size:13px;color:#065F46;font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+
+  /* SUMMARY */
+  .today-summary{background:#fff;border-radius:16px;padding:16px;box-shadow:var(--shadow);margin-bottom:20px;display:flex;gap:12px;}
+  .summary-item{flex:1;text-align:center;padding:12px 8px;border-radius:12px;}
+  .summary-item.pee-summary{background:var(--amber-light);}
+  .summary-item.poop-summary{background:#FEF3C7;}
+  .summary-num{font-family:'Nunito',sans-serif;font-size:28px;font-weight:900;line-height:1;margin-bottom:4px;}
+  .summary-item.pee-summary .summary-num{color:var(--amber-dark);}
+  .summary-item.poop-summary .summary-num{color:#92400E;}
+  .summary-label{font-size:12px;font-weight:700;color:var(--text-muted);}
+
+  /* TABS */
+  .tabs{display:flex;background:#F0EDE8;border-radius:14px;padding:4px;margin-bottom:16px;}
+  .tab{flex:1;padding:8px;border:none;background:transparent;border-radius:10px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--text-muted);cursor:pointer;transition:all .15s;}
+  .tab.active{background:#fff;color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.08);}
+
+  /* LOG ENTRIES */
+  .log-entry{background:var(--card);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow);border-left:4px solid transparent;animation:fadeIn .3s ease;position:relative;}
+  @keyframes fadeIn{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:translateX(0);}}
+  .log-entry.by-me{border-left-color:var(--amber);}
+  .log-entry.by-wife{border-left-color:var(--purple);}
+  .entry-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .entry-who{display:flex;align-items:center;gap:8px;}
+  .who-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;font-family:'Nunito',sans-serif;}
+  .who-avatar.me{background:var(--amber-light);color:var(--amber-dark);}
+  .who-avatar.wife{background:var(--purple-light);color:var(--purple);}
+  .who-name{font-size:14px;font-weight:700;}
+  .entry-time{font-size:12px;color:var(--text-muted);}
+  .badge-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;}
+  .badge{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+  .badge.pee{background:var(--amber-light);color:var(--amber-dark);}
+  .badge.poop{background:#FEF3C7;color:#92400E;}
+  .badge.normal{background:var(--green-light);color:#065F46;}
+  .badge.abnormal{background:var(--red-light);color:#991B1B;}
+  .badge.morning{background:#FEF3C7;color:#92400E;}
+  .badge.evening{background:#FFEDD5;color:#C2410C;}
+  .badge.night{background:#EEF2FF;color:#4338CA;}
+  .entry-note{font-size:13px;color:var(--text-muted);background:#F5F5F4;border-radius:8px;padding:8px 10px;margin-top:4px;}
+  .entry-route-btn{margin-top:8px;font-size:12px;color:var(--blue);font-weight:700;background:var(--blue-light);border:none;border-radius:8px;padding:5px 10px;cursor:pointer;}
+  .entry-route-map{height:160px;border-radius:10px;overflow:hidden;display:none;border:2px solid var(--blue);margin-top:6px;}
+  .delete-btn{position:absolute;top:12px;right:12px;background:none;border:none;font-size:16px;cursor:pointer;opacity:.3;transition:opacity .15s;padding:2px 6px;}
+  .delete-btn:active{opacity:1;}
+  .empty-state{text-align:center;padding:40px 20px;color:var(--text-muted);}
+  .empty-state .big{font-size:48px;margin-bottom:12px;}
+  .empty-state p{font-size:14px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="dog-name">🐾 狗狗日誌</div>
+      <div class="date-badge" id="todayDate"></div>
+    </div>
+    <div class="dog-emoji">🐕</div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-pill">💧 <span id="headerPee">0</span> 次尿尿</div>
+    <div class="stat-pill">💩 <span id="headerPoop">0</span> 次便便</div>
+    <div class="stat-pill" id="lastUpdatedPill">尚無紀錄</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="sync-banner">
+    <span class="icon">🔗</span>
+    <div>將此頁面連結分享給太太，兩人開啟同一連結即可<b>即時共享</b>紀錄。建議加入 LINE 書籤或釘選。</div>
+  </div>
+
+  <!-- GPS Card -->
+  <div class="gps-card">
+    <div class="gps-card-title">📍 GPS 路徑追蹤</div>
+    <div class="gps-status">
+      <div class="gps-dot" id="gpsDot"></div>
+      <span id="gpsStatusText">尚未開始追蹤</span>
+    </div>
+    <div class="gps-btn-row">
+      <button class="gps-start-btn" id="gpsStartBtn" onclick="startTracking()">▶ 開始追蹤</button>
+      <button class="gps-stop-btn" id="gpsStopBtn" onclick="stopTracking()">⏹ 結束追蹤</button>
+    </div>
+    <div id="mapContainer"></div>
+    <div class="gps-stats-row" id="gpsStatsRow" style="display:none">
+      <div class="gps-stat"><div class="val" id="statDist">0</div><div class="lbl">距離（公尺）</div></div>
+      <div class="gps-stat"><div class="val" id="statTime">0:00</div><div class="lbl">時間</div></div>
+      <div class="gps-stat"><div class="val" id="statPoints">0</div><div class="lbl">GPS 點位</div></div>
+    </div>
+    <div class="past-routes-wrap" id="pastRoutesWrap" style="display:none">
+      <div class="section-label" style="margin-top:14px;margin-bottom:8px">過去路徑紀錄</div>
+      <div id="pastRoutesList"></div>
+    </div>
+  </div>
+
+  <!-- Add -->
+  <button class="add-btn" onclick="toggleForm()">＋ 記錄遛狗</button>
+
+  <!-- Form -->
+  <div class="form-card" id="formCard">
+    <div class="form-title">📝 新增遛狗紀錄</div>
+
+    <div class="section-label">誰帶牠出去？</div>
+    <div class="toggle-group">
+      <button class="toggle-btn active" id="btn-me" onclick="selectWho('me')">👨 我</button>
+      <button class="toggle-btn" id="btn-wife" onclick="selectWho('wife')">👩 太太</button>
+    </div>
+
+    <div class="section-label">遛狗時段</div>
+    <div class="time-toggle-group">
+      <button class="time-btn morning active" id="time-morning" onclick="selectTime('morning')"><span class="t-icon">🌅</span>早上</button>
+      <button class="time-btn evening" id="time-evening" onclick="selectTime('evening')"><span class="t-icon">🌆</span>傍晚</button>
+      <button class="time-btn night" id="time-night" onclick="selectTime('night')"><span class="t-icon">🌙</span>晚上</button>
+    </div>
+
+    <div class="section-label">尿尿了嗎？</div>
+    <div class="toggle-group">
+      <button class="toggle-btn active" id="pee-yes" onclick="selectPee(true)">💧 有</button>
+      <button class="toggle-btn" id="pee-no" onclick="selectPee(false)">🚫 沒有</button>
+    </div>
+
+    <div class="section-label">便便了嗎？</div>
+    <div class="toggle-group" style="margin-bottom:0">
+      <button class="toggle-btn active" id="poop-yes" onclick="selectPoop(true)">💩 有</button>
+      <button class="toggle-btn" id="poop-no" onclick="selectPoop(false)">🚫 沒有</button>
+    </div>
+
+    <div id="poopStatusSection" style="margin-top:12px;margin-bottom:16px">
+      <div class="section-label">便便狀況</div>
+      <div class="toggle-group">
+        <button class="toggle-btn active" id="poop-normal" onclick="selectPoopStatus('normal')">✅ 正常</button>
+        <button class="toggle-btn" id="poop-abnormal" onclick="selectPoopStatus('abnormal')">⚠️ 異常</button>
+      </div>
+    </div>
+
+    <div id="attachRouteSection" style="display:none;margin-bottom:16px">
+      <div class="section-label">附加 GPS 路徑</div>
+      <div class="attach-route-box">✅ <span id="attachRouteLabel">已追蹤路徑將自動附加</span></div>
+    </div>
+
+    <div class="section-label">備註（可留空）</div>
+    <textarea class="note-input" id="noteInput" rows="2" placeholder="例：有點軟便、精神很好、吃了草..."></textarea>
+    <button class="submit-btn" onclick="submitLog()">✅ 儲存紀錄</button>
+  </div>
+
+  <!-- Summary -->
+  <div class="today-summary" id="todaySummary" style="display:none">
+    <div class="summary-item pee-summary">
+      <div class="summary-num" id="summaryPee">0</div>
+      <div class="summary-label">💧 今日尿尿</div>
+    </div>
+    <div class="summary-item poop-summary">
+      <div class="summary-num" id="summaryPoop">0</div>
+      <div class="summary-label">💩 今日便便</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" id="tab-today" onclick="switchTab('today')">今天</button>
+    <button class="tab" id="tab-all" onclick="switchTab('all')">全部紀錄</button>
+  </div>
+
+  <div id="logList"></div>
+</div>
+
+<script>
+const LOG_KEY = 'dogWalkLog_v2';
+const ROUTE_KEY = 'dogWalkRoutes_v1';
+let logs = [], routes = [];
+let currentWho = 'me', walkTime = 'morning';
+let hasPee = true, hasPoop = true, poopStatus = 'normal';
+let currentTab = 'today';
+
+// GPS state
+let trackingActive = false, currentRoute = [], trackingStart = null;
+let watchId = null, liveMap = null, livePolyline = null, timerInterval = null;
+let pendingRouteId = null;
+const routeMaps = {}, logMaps = {};
+
+// ─── Storage ───
+async function save(key, data, shared=true) {
+  const s = JSON.stringify(data);
+  try { if(window.storage) await window.storage.set(key,s,shared); else localStorage.setItem(key,s); }
+  catch(e) { localStorage.setItem(key,s); }
+}
+async function loadKey(key, shared=true) {
+  try {
+    if(window.storage){ const r=await window.storage.get(key,shared); return r&&r.value?JSON.parse(r.value):null; }
+    else { const r=localStorage.getItem(key); return r?JSON.parse(r):null; }
+  } catch(e){ const r=localStorage.getItem(key); return r?JSON.parse(r):null; }
+}
+async function initData() {
+  logs = (await loadKey(LOG_KEY)) || [];
+  routes = (await loadKey(ROUTE_KEY)) || [];
+  render(); renderPastRoutes();
+}
+
+// ─── GPS ───
+function startTracking() {
+  if(!navigator.geolocation){ alert('您的裝置或瀏覽器不支援 GPS 定位，請確認定位權限已開啟。'); return; }
+  currentRoute=[]; trackingStart=Date.now(); trackingActive=true; pendingRouteId=null;
+  document.getElementById('gpsStartBtn').style.display='none';
+  document.getElementById('gpsStopBtn').style.display='flex';
+  document.getElementById('gpsDot').classList.add('active');
+  document.getElementById('gpsStatusText').textContent='正在追蹤中...';
+  document.getElementById('gpsStatsRow').style.display='flex';
+  const mc=document.getElementById('mapContainer');
+  mc.classList.add('visible');
+  if(!liveMap){
+    liveMap=L.map('mapContainer',{zoomControl:true,attributionControl:false});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(liveMap);
+  }
+  livePolyline=L.polyline([],{color:'#10B981',weight:4,opacity:.85}).addTo(liveMap);
+  watchId=navigator.geolocation.watchPosition(
+    pos=>{
+      const {latitude:lat,longitude:lng}=pos.coords;
+      currentRoute.push({lat,lng,t:Date.now()});
+      livePolyline.addLatLng([lat,lng]);
+      liveMap.setView([lat,lng],liveMap.getZoom()<15?16:liveMap.getZoom());
+      updateStats();
+    },
+    err=>{ document.getElementById('gpsStatusText').textContent='無法取得位置：'+err.message; },
+    {enableHighAccuracy:true,maximumAge:3000,timeout:15000}
+  );
+  timerInterval=setInterval(updateStats,1000);
+}
+
+function stopTracking() {
+  if(watchId!==null){navigator.geolocation.clearWatch(watchId);watchId=null;}
+  clearInterval(timerInterval); trackingActive=false;
+  document.getElementById('gpsStartBtn').style.display='flex';
+  document.getElementById('gpsStopBtn').style.display='none';
+  document.getElementById('gpsDot').classList.remove('active');
+  if(currentRoute.length<2){ document.getElementById('gpsStatusText').textContent='追蹤結束（點位不足，無法儲存）'; return; }
+  const dist=calcDist(currentRoute);
+  const mins=Math.round((Date.now()-trackingStart)/60000);
+  const routeId=Date.now();
+  const obj={id:routeId,points:currentRoute,startTime:new Date(trackingStart).toISOString(),endTime:new Date().toISOString(),distance:Math.round(dist),duration:mins};
+  routes.unshift(obj);
+  save(ROUTE_KEY,routes);
+  pendingRouteId=routeId;
+  document.getElementById('gpsStatusText').textContent=`路徑已儲存 ✅　${Math.round(dist)} 公尺・${mins} 分鐘`;
+  document.getElementById('attachRouteSection').style.display='block';
+  document.getElementById('attachRouteLabel').textContent=`${Math.round(dist)} 公尺・${mins} 分鐘，儲存時自動附加`;
+  renderPastRoutes();
+}
+
+function haversine(lat1,lon1,lat2,lon2){
+  const R=6371000,dL=(lat2-lat1)*Math.PI/180,dO=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dL/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dO/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function calcDist(pts){let t=0;for(let i=1;i<pts.length;i++)t+=haversine(pts[i-1].lat,pts[i-1].lng,pts[i].lat,pts[i].lng);return t;}
+function updateStats(){
+  document.getElementById('statDist').textContent=Math.round(calcDist(currentRoute));
+  const s=Math.floor((Date.now()-trackingStart)/1000);
+  document.getElementById('statTime').textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+  document.getElementById('statPoints').textContent=currentRoute.length;
+}
+
+function renderPastRoutes(){
+  if(routes.length===0){document.getElementById('pastRoutesWrap').style.display='none';return;}
+  document.getElementById('pastRoutesWrap').style.display='block';
+  document.getElementById('pastRoutesList').innerHTML=routes.slice(0,5).map(r=>{
+    const d=new Date(r.startTime);
+    const ds=d.toLocaleString('zh-TW',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    return `<div class="past-route-item" onclick="togglePastMap(${r.id})">
+      <span style="font-size:20px">🗺️</span>
+      <div class="route-info"><div class="route-title">${ds}</div><div class="route-meta">${r.distance} 公尺・${r.duration} 分鐘・${r.points.length} 個點位</div></div>
+      <span style="font-size:12px;color:var(--blue)">地圖▼</span>
+    </div>
+    <div class="route-map-preview" id="pastmap-${r.id}"></div>`;
+  }).join('');
+}
+function togglePastMap(id){
+  const el=document.getElementById(`pastmap-${id}`);
+  if(el.style.display==='block'){el.style.display='none';return;}
+  el.style.display='block';
+  if(routeMaps[id])return;
+  const r=routes.find(x=>x.id===id);
+  if(!r||r.points.length<2)return;
+  const m=L.map(el,{zoomControl:false,attributionControl:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(m);
+  const ll=r.points.map(p=>[p.lat,p.lng]);
+  const poly=L.polyline(ll,{color:'#6366F1',weight:4}).addTo(m);
+  L.circleMarker(ll[0],{radius:7,color:'#10B981',fillColor:'#10B981',fillOpacity:1}).addTo(m);
+  L.circleMarker(ll[ll.length-1],{radius:7,color:'#EF4444',fillColor:'#EF4444',fillOpacity:1}).addTo(m);
+  m.fitBounds(poly.getBounds(),{padding:[12,12]});
+  routeMaps[id]=m;
+  setTimeout(()=>m.invalidateSize(),100);
+}
+
+// ─── Form ───
+function toggleForm(){document.getElementById('formCard').classList.toggle('open');}
+function selectWho(w){currentWho=w;['me','wife'].forEach(x=>document.getElementById(`btn-${x}`).classList.toggle('active',x===w));}
+function selectTime(t){walkTime=t;['morning','evening','night'].forEach(x=>document.getElementById(`time-${x}`).classList.toggle('active',x===t));}
+function selectPee(v){hasPee=v;document.getElementById('pee-yes').classList.toggle('active',v);document.getElementById('pee-no').classList.toggle('active',!v);}
+function selectPoop(v){hasPoop=v;document.getElementById('poop-yes').classList.toggle('active',v);document.getElementById('poop-no').classList.toggle('active',!v);document.getElementById('poopStatusSection').style.display=v?'block':'none';}
+function selectPoopStatus(s){poopStatus=s;document.getElementById('poop-normal').classList.toggle('active',s==='normal');document.getElementById('poop-abnormal').classList.toggle('active',s==='abnormal');}
+function switchTab(t){currentTab=t;['today','all'].forEach(x=>document.getElementById(`tab-${x}`).classList.toggle('active',x===t));renderList();}
+
+// ─── Submit / Delete ───
+async function submitLog(){
+  const entry={id:Date.now(),who:currentWho,walkTime,pee:hasPee,poop:hasPoop,poopStatus:hasPoop?poopStatus:null,note:document.getElementById('noteInput').value.trim(),routeId:pendingRouteId||null,time:new Date().toISOString()};
+  logs.unshift(entry);
+  await save(LOG_KEY,logs);
+  document.getElementById('noteInput').value='';
+  document.getElementById('attachRouteSection').style.display='none';
+  pendingRouteId=null;
+  document.getElementById('formCard').classList.remove('open');
+  render();
+}
+async function deleteLog(id){logs=logs.filter(l=>l.id!==id);await save(LOG_KEY,logs);render();}
+
+// ─── Render ───
+const TL={morning:'🌅 早上',evening:'🌆 傍晚',night:'🌙 晚上'};
+function todayStr(){return new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'});}
+function isToday(iso){return new Date(iso).toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'})===todayStr();}
+
+function render(){
+  document.getElementById('todayDate').textContent=new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+  const tl=logs.filter(l=>isToday(l.time));
+  const tp=tl.filter(l=>l.pee).length, tc=tl.filter(l=>l.poop).length;
+  ['headerPee','summaryPee'].forEach(id=>document.getElementById(id).textContent=tp);
+  ['headerPoop','summaryPoop'].forEach(id=>document.getElementById(id).textContent=tc);
+  document.getElementById('todaySummary').style.display=tl.length>0?'flex':'none';
+  if(logs.length>0){
+    const mins=Math.floor((Date.now()-new Date(logs[0].time))/60000);
+    document.getElementById('lastUpdatedPill').textContent='🕐 '+(mins<1?'剛剛更新':mins<60?`${mins} 分鐘前`:`${Math.floor(mins/60)} 小時前`);
+  }
+  renderList();
+}
+
+function renderList(){
+  const container=document.getElementById('logList');
+  const filtered=currentTab==='today'?logs.filter(l=>isToday(l.time)):logs;
+  if(filtered.length===0){container.innerHTML=`<div class="empty-state"><div class="big">🐾</div><p>${currentTab==='today'?'今天還沒有紀錄，快去遛狗吧！':'還沒有任何紀錄'}</p></div>`;return;}
+  container.innerHTML=filtered.map(e=>{
+    const d=new Date(e.time);
+    const ts=d.toLocaleString('zh-TW',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const wc=e.who==='me'?'by-me':'by-wife';
+    const ac=e.who==='me'?'me':'wife';
+    const wl=e.who==='me'?'我':'太太';
+    const av=e.who==='me'?'我':'妻';
+    let badges=`<span class="badge ${e.walkTime}">${TL[e.walkTime]||''}</span>`;
+    if(e.pee)badges+=`<span class="badge pee">💧 尿尿</span>`;
+    if(e.poop){badges+=`<span class="badge poop">💩 便便</span>`;badges+=e.poopStatus==='normal'?`<span class="badge normal">✅ 正常</span>`:`<span class="badge abnormal">⚠️ 異常</span>`;}
+    if(!e.pee&&!e.poop)badges+=`<span class="badge" style="background:#F5F5F4;color:#78716C">散步未排泄</span>`;
+    const noteHtml=e.note?`<div class="entry-note">📝 ${e.note}</div>`:'';
+    const routeHtml=e.routeId?`<button class="entry-route-btn" onclick="toggleEntryMap(${e.id},${e.routeId})">🗺️ 查看路徑</button><div class="entry-route-map" id="entrymap-${e.id}"></div>`:'';
+    return `<div class="log-entry ${wc}">
+      <button class="delete-btn" onclick="deleteLog(${e.id})">🗑️</button>
+      <div class="entry-header"><div class="entry-who"><div class="who-avatar ${ac}">${av}</div><span class="who-name">${wl}帶出去</span></div><span class="entry-time">${ts}</span></div>
+      <div class="badge-row">${badges}</div>${noteHtml}${routeHtml}
+    </div>`;
+  }).join('');
+}
+
+function toggleEntryMap(eid,rid){
+  const el=document.getElementById(`entrymap-${eid}`);
+  if(el.style.display==='block'){el.style.display='none';return;}
+  el.style.display='block';
+  if(logMaps[eid])return;
+  const r=routes.find(x=>x.id===rid);
+  if(!r||r.points.length<2){el.innerHTML='<div style="padding:16px;text-align:center;font-size:13px;color:#78716C">路徑資料不存在</div>';return;}
+  const m=L.map(el,{zoomControl:false,attributionControl:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(m);
+  const ll=r.points.map(p=>[p.lat,p.lng]);
+  const poly=L.polyline(ll,{color:'#F59E0B',weight:4}).addTo(m);
+  L.circleMarker(ll[0],{radius:7,color:'#10B981',fillColor:'#10B981',fillOpacity:1}).addTo(m);
+  L.circleMarker(ll[ll.length-1],{radius:7,color:'#EF4444',fillColor:'#EF4444',fillOpacity:1}).addTo(m);
+  m.fitBounds(poly.getBounds(),{padding:[14,14]});
+  logMaps[eid]=m;
+  setTimeout(()=>m.invalidateSize(),100);
+}
+
+// Auto refresh
+setInterval(async()=>{logs=(await loadKey(LOG_KEY))||logs;render();},30000);
+
+initData();
+</script>
+</body>
+</html>
