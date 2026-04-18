@@ -6,8 +6,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>🐾 狗狗散步日誌</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script>
@@ -50,31 +48,22 @@
   .sync-banner{background:var(--blue-light);border:1.5px solid var(--blue);border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:flex-start;gap:10px;font-size:13px;color:#1E40AF;font-weight:500;line-height:1.5;}
   .sync-banner .icon{font-size:18px;flex-shrink:0;margin-top:1px;}
 
-  /* GPS CARD */
-  .gps-card{background:var(--card);border-radius:20px;padding:16px;box-shadow:var(--shadow-lg);margin-bottom:16px;}
-  .gps-card-title{font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-  .gps-btn-row{display:flex;gap:10px;margin-bottom:12px;}
-  .gps-start-btn,.gps-stop-btn{flex:1;padding:12px;border:none;border-radius:12px;color:#fff;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;}
-  .gps-start-btn{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 4px 14px rgba(16,185,129,.3);}
-  .gps-stop-btn{background:linear-gradient(135deg,var(--red),#DC2626);box-shadow:0 4px 14px rgba(239,68,68,.3);display:none;}
-  .gps-start-btn:active,.gps-stop-btn:active{transform:scale(.97);}
-  .gps-status{font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:6px;margin-bottom:10px;}
-  .gps-dot{width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0;}
-  .gps-dot.active{background:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:pulse 1.5s infinite;}
-  @keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05);}}
-  #mapContainer{height:220px;border-radius:12px;overflow:hidden;display:none;border:2px solid var(--border);margin-bottom:10px;}
-  #mapContainer.visible{display:block;}
-  .gps-stats-row{display:flex;gap:8px;}
-  .gps-stat{flex:1;background:#F5F5F4;border-radius:10px;padding:8px 10px;text-align:center;}
-  .gps-stat .val{font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;}
-  .gps-stat .lbl{font-size:11px;color:var(--text-muted);font-weight:600;}
-  .past-routes-wrap{margin-top:14px;}
-  .past-route-item{background:#F5F5F4;border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .15s;}
-  .past-route-item:active{background:var(--blue-light);}
-  .route-info{flex:1;}
-  .route-title{font-size:13px;font-weight:700;}
-  .route-meta{font-size:12px;color:var(--text-muted);margin-top:2px;}
-  .route-map-preview{height:180px;border-radius:10px;overflow:hidden;display:none;border:2px solid var(--blue);margin-bottom:8px;}
+  /* ROUTE PLANNER */
+  .route-card{background:var(--card);border-radius:20px;padding:16px;box-shadow:var(--shadow-lg);margin-bottom:16px;}
+  .route-card-title{font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .place-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+  .place-btn{padding:14px 10px;border:2px solid var(--border);border-radius:14px;background:#fff;font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:700;color:var(--text-muted);cursor:pointer;transition:all .15s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .place-btn:active{transform:scale(.96);}
+  .place-btn.selected{border-color:var(--green);background:var(--green-light);color:#065F46;}
+  .place-btn .place-icon{font-size:22px;}
+  .place-btn .place-label{font-size:12px;}
+  .route-sequence{min-height:44px;background:#F5F5F4;border-radius:12px;padding:10px 12px;margin-bottom:10px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
+  .route-sequence-empty{font-size:13px;color:var(--text-muted);}
+  .seq-chip{display:flex;align-items:center;gap:4px;background:#fff;border:1.5px solid var(--green);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:700;color:#065F46;}
+  .seq-arrow{font-size:14px;color:var(--text-muted);}
+  .route-clear-btn{width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;background:#fff;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--text-muted);cursor:pointer;}
+  .route-clear-btn:active{background:var(--red-light);color:var(--red);border-color:var(--red);}
+  .entry-route-sequence{margin-top:8px;background:#F0FDF4;border-radius:8px;padding:8px 10px;font-size:12px;color:#065F46;font-weight:600;display:flex;flex-wrap:wrap;align-items:center;gap:4px;}
 
   /* ADD BUTTON */
   .add-btn{width:100%;background:linear-gradient(135deg,#10B981,#059669);color:#fff;border:none;border-radius:18px;padding:18px;font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 20px rgba(16,185,129,.35);transition:all .2s;margin-bottom:16px;}
@@ -177,27 +166,23 @@
     <div>已連接 Firebase，與太太的資料<b>即時雙向同步</b>。將網址分享給太太，兩人開啟同一連結即可。</div>
   </div>
 
-  <!-- GPS Card -->
-  <div class="gps-card">
-    <div class="gps-card-title">📍 GPS 路徑追蹤</div>
-    <div class="gps-status">
-      <div class="gps-dot" id="gpsDot"></div>
-      <span id="gpsStatusText">尚未開始追蹤</span>
+  <!-- Route Planner Card -->
+  <div class="route-card">
+    <div class="route-card-title">📍 今日路線規劃</div>
+    <div class="section-label">點選地點（可重複、可折返）</div>
+    <div class="place-grid">
+      <button class="place-btn" onclick="addPlace('A','狗狗公園')"><span class="place-icon">🐾</span><span class="place-label">狗狗公園</span></button>
+      <button class="place-btn" onclick="addPlace('B','康寧國小正門')"><span class="place-icon">🏫</span><span class="place-label">康寧國小正門</span></button>
+      <button class="place-btn" onclick="addPlace('C','康寧國小側門')"><span class="place-icon">🚪</span><span class="place-label">康寧國小側門</span></button>
+      <button class="place-btn" onclick="addPlace('D','大笨鳥公園')"><span class="place-icon">🌳</span><span class="place-label">大笨鳥公園</span></button>
+      <button class="place-btn" onclick="addPlace('E','警智新村')"><span class="place-icon">🏘️</span><span class="place-label">警智新村</span></button>
+      <button class="place-btn" onclick="addPlace('F','康寧國小後山')"><span class="place-icon">⛰️</span><span class="place-label">康寧國小後山</span></button>
     </div>
-    <div class="gps-btn-row">
-      <button class="gps-start-btn" id="gpsStartBtn" onclick="startTracking()">▶ 開始追蹤</button>
-      <button class="gps-stop-btn" id="gpsStopBtn" onclick="stopTracking()">⏹ 結束追蹤</button>
+    <div class="section-label">目前路線順序</div>
+    <div class="route-sequence" id="routeSequence">
+      <span class="route-sequence-empty">點選上方地點來建立路線</span>
     </div>
-    <div id="mapContainer"></div>
-    <div class="gps-stats-row" id="gpsStatsRow" style="display:none">
-      <div class="gps-stat"><div class="val" id="statDist">0</div><div class="lbl">距離（公尺）</div></div>
-      <div class="gps-stat"><div class="val" id="statTime">0:00</div><div class="lbl">時間</div></div>
-      <div class="gps-stat"><div class="val" id="statPoints">0</div><div class="lbl">GPS 點位</div></div>
-    </div>
-    <div class="past-routes-wrap" id="pastRoutesWrap" style="display:none">
-      <div class="section-label" style="margin-top:14px;margin-bottom:8px">過去路徑紀錄</div>
-      <div id="pastRoutesList"></div>
-    </div>
+    <button class="route-clear-btn" onclick="clearRoute()">🗑️ 清除路線</button>
   </div>
 
   <!-- Add -->
@@ -247,11 +232,6 @@
       </div>
     </div>
 
-    <div id="attachRouteSection" style="display:none;margin-bottom:16px">
-      <div class="section-label">附加 GPS 路徑</div>
-      <div class="attach-route-box">✅ <span id="attachRouteLabel">已追蹤路徑將自動附加</span></div>
-    </div>
-
     <div class="section-label">備註（可留空）</div>
     <textarea class="note-input" id="noteInput" rows="2" placeholder="例：有點軟便、精神很好、吃了草..."></textarea>
     <button class="submit-btn" onclick="submitLog()">✅ 儲存紀錄</button>
@@ -280,17 +260,11 @@
 
 <script>
 const LOG_KEY = 'dogWalkLog_v2';
-const ROUTE_KEY = 'dogWalkRoutes_v1';
-let logs = [], routes = [];
+let logs = [];
 let currentWho = 'me', walkTime = 'morning';
 let hasPee = true, hasPoop = true, poopStatus = 'normal';
 let currentTab = 'today';
-
-// GPS state
-let trackingActive = false, currentRoute = [], trackingStart = null;
-let watchId = null, liveMap = null, livePolyline = null, timerInterval = null;
-let pendingRouteId = null;
-const routeMaps = {}, logMaps = {};
+let routeSequence = []; // [{id:'A', name:'狗狗公園'}, ...]
 
 // ─── Firebase Storage ───
 async function saveLog(entry) {
@@ -299,142 +273,36 @@ async function saveLog(entry) {
 async function deleteLogFromDB(id) {
   await db.ref('logs/' + id).remove();
 }
-async function saveRoute(route) {
-  await db.ref('routes/' + route.id).set(route);
-}
 
 function initData() {
-  // 即時監聽 logs
   db.ref('logs').on('value', snap => {
     const data = snap.val() || {};
     logs = Object.values(data).sort((a,b) => b.id - a.id);
     render();
   });
-  // 即時監聽 routes
-  db.ref('routes').on('value', snap => {
-    const data = snap.val() || {};
-    routes = Object.values(data).sort((a,b) => b.id - a.id);
-    renderPastRoutes();
-  });
+}
+
+// ─── Route Planner ───
+function addPlace(id, name) {
+  routeSequence.push({id, name});
+  renderRouteSequence();
+}
+function clearRoute() {
+  routeSequence = [];
+  renderRouteSequence();
+}
+function renderRouteSequence() {
+  const el = document.getElementById('routeSequence');
+  if (routeSequence.length === 0) {
+    el.innerHTML = '<span class="route-sequence-empty">點選上方地點來建立路線</span>';
+    return;
+  }
+  el.innerHTML = routeSequence.map((p, i) =>
+    `<span class="seq-chip">${p.id} ${p.name}</span>${i < routeSequence.length-1 ? '<span class="seq-arrow">→</span>' : ''}`
+  ).join('');
 }
 
 // ─── GPS ───
-function startTracking() {
-  if(!navigator.geolocation){ alert('您的裝置或瀏覽器不支援 GPS 定位，請確認定位權限已開啟。'); return; }
-  currentRoute=[]; trackingStart=Date.now(); trackingActive=true; pendingRouteId=null;
-  document.getElementById('gpsStartBtn').style.display='none';
-  document.getElementById('gpsStopBtn').style.display='flex';
-  document.getElementById('gpsDot').classList.add('active');
-  document.getElementById('gpsStatusText').textContent='正在追蹤中...';
-  document.getElementById('gpsStatsRow').style.display='flex';
-  const mc=document.getElementById('mapContainer');
-  mc.classList.add('visible');
-  if(!liveMap){
-    liveMap=L.map('mapContainer',{zoomControl:true,attributionControl:false});
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(liveMap);
-  }
-  livePolyline=L.polyline([],{color:'#10B981',weight:4,opacity:.85}).addTo(liveMap);
-
-  // watchPosition：強制高精度、不用快取
-  watchId=navigator.geolocation.watchPosition(
-    pos=>{
-      const {latitude:lat,longitude:lng}=pos.coords;
-      addPoint(lat,lng);
-    },
-    err=>{ document.getElementById('gpsStatusText').textContent='無法取得位置：'+err.message; },
-    {enableHighAccuracy:true,maximumAge:0,timeout:10000}
-  );
-
-  // 補點計時器：每 5 秒主動取一次位置，補足 watchPosition 頻率不足的空白
-  const fillTimer=setInterval(()=>{
-    if(!trackingActive){clearInterval(fillTimer);return;}
-    navigator.geolocation.getCurrentPosition(
-      pos=>addPoint(pos.coords.latitude,pos.coords.longitude),
-      ()=>{},
-      {enableHighAccuracy:true,maximumAge:0,timeout:8000}
-    );
-  },5000);
-
-  timerInterval=setInterval(updateStats,1000);
-}
-
-function addPoint(lat,lng){
-  // 過濾重複點（與上一點距離 < 2m 不記錄）
-  if(currentRoute.length>0){
-    const last=currentRoute[currentRoute.length-1];
-    if(haversine(last.lat,last.lng,lat,lng)<2)return;
-  }
-  currentRoute.push({lat,lng,t:Date.now()});
-  livePolyline.addLatLng([lat,lng]);
-  liveMap.setView([lat,lng],liveMap.getZoom()<16?16:liveMap.getZoom());
-  updateStats();
-}
-
-function stopTracking() {
-  if(watchId!==null){navigator.geolocation.clearWatch(watchId);watchId=null;}
-  clearInterval(timerInterval); trackingActive=false;
-  document.getElementById('gpsStartBtn').style.display='flex';
-  document.getElementById('gpsStopBtn').style.display='none';
-  document.getElementById('gpsDot').classList.remove('active');
-  if(currentRoute.length<2){ document.getElementById('gpsStatusText').textContent='追蹤結束（點位不足，無法儲存）'; return; }
-  const dist=calcDist(currentRoute);
-  const mins=Math.round((Date.now()-trackingStart)/60000);
-  const routeId=Date.now();
-  const obj={id:routeId,points:currentRoute,startTime:new Date(trackingStart).toISOString(),endTime:new Date().toISOString(),distance:Math.round(dist),duration:mins};
-  routes.unshift(obj);
-  saveRoute(obj);
-  pendingRouteId=routeId;
-  document.getElementById('gpsStatusText').textContent=`路徑已儲存 ✅　${Math.round(dist)} 公尺・${mins} 分鐘`;
-  document.getElementById('attachRouteSection').style.display='block';
-  document.getElementById('attachRouteLabel').textContent=`${Math.round(dist)} 公尺・${mins} 分鐘，儲存時自動附加`;
-  renderPastRoutes();
-}
-
-function haversine(lat1,lon1,lat2,lon2){
-  const R=6371000,dL=(lat2-lat1)*Math.PI/180,dO=(lon2-lon1)*Math.PI/180;
-  const a=Math.sin(dL/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dO/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
-function calcDist(pts){let t=0;for(let i=1;i<pts.length;i++)t+=haversine(pts[i-1].lat,pts[i-1].lng,pts[i].lat,pts[i].lng);return t;}
-function updateStats(){
-  document.getElementById('statDist').textContent=Math.round(calcDist(currentRoute));
-  const s=Math.floor((Date.now()-trackingStart)/1000);
-  document.getElementById('statTime').textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
-  document.getElementById('statPoints').textContent=currentRoute.length;
-}
-
-function renderPastRoutes(){
-  if(routes.length===0){document.getElementById('pastRoutesWrap').style.display='none';return;}
-  document.getElementById('pastRoutesWrap').style.display='block';
-  document.getElementById('pastRoutesList').innerHTML=routes.slice(0,5).map(r=>{
-    const d=new Date(r.startTime);
-    const ds=d.toLocaleString('zh-TW',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-    return `<div class="past-route-item" onclick="togglePastMap(${r.id})">
-      <span style="font-size:20px">🗺️</span>
-      <div class="route-info"><div class="route-title">${ds}</div><div class="route-meta">${r.distance} 公尺・${r.duration} 分鐘・${r.points.length} 個點位</div></div>
-      <span style="font-size:12px;color:var(--blue)">地圖▼</span>
-    </div>
-    <div class="route-map-preview" id="pastmap-${r.id}"></div>`;
-  }).join('');
-}
-function togglePastMap(id){
-  const el=document.getElementById(`pastmap-${id}`);
-  if(el.style.display==='block'){el.style.display='none';return;}
-  el.style.display='block';
-  if(routeMaps[id])return;
-  const r=routes.find(x=>x.id===id);
-  if(!r||r.points.length<2)return;
-  const m=L.map(el,{zoomControl:false,attributionControl:false});
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(m);
-  const ll=r.points.map(p=>[p.lat,p.lng]);
-  const poly=L.polyline(ll,{color:'#6366F1',weight:4}).addTo(m);
-  L.circleMarker(ll[0],{radius:7,color:'#10B981',fillColor:'#10B981',fillOpacity:1}).addTo(m);
-  L.circleMarker(ll[ll.length-1],{radius:7,color:'#EF4444',fillColor:'#EF4444',fillOpacity:1}).addTo(m);
-  m.fitBounds(poly.getBounds(),{padding:[12,12]});
-  routeMaps[id]=m;
-  setTimeout(()=>m.invalidateSize(),100);
-}
-
 // ─── Form ───
 function setNowTime(){const n=new Date();document.getElementById('walkTimeInput').value=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;}
 function toggleForm(){const card=document.getElementById('formCard');card.classList.toggle('open');if(card.classList.contains('open'))setNowTime();}
@@ -448,17 +316,15 @@ function switchTab(t){currentTab=t;['today','all'].forEach(x=>document.getElemen
 // ─── Submit / Delete ───
 async function submitLog(){
   const walkTimeStr=document.getElementById('walkTimeInput').value||'';
-  // 取得歷時：若有附加路徑則用路徑時間，否則用手動時間欄位不記錄歷時
-  let durationMins = null;
-  if(pendingRouteId){
-    const r = routes.find(x=>x.id===pendingRouteId);
-    if(r) durationMins = r.duration;
-  }
-  const entry={id:Date.now(),who:currentWho,walkTime,walkTimeStr,durationMins,pee:hasPee,poop:hasPoop,poopStatus:hasPoop?poopStatus:null,note:document.getElementById('noteInput').value.trim(),routeId:pendingRouteId||null,time:new Date().toISOString()};
+  const entry={
+    id:Date.now(),who:currentWho,walkTime,walkTimeStr,
+    pee:hasPee,poop:hasPoop,poopStatus:hasPoop?poopStatus:null,
+    routePlaces: routeSequence.length>0 ? [...routeSequence] : null,
+    note:document.getElementById('noteInput').value.trim(),
+    time:new Date().toISOString()
+  };
   await saveLog(entry);
   document.getElementById('noteInput').value='';
-  document.getElementById('attachRouteSection').style.display='none';
-  pendingRouteId=null;
   document.getElementById('formCard').classList.remove('open');
 }
 async function deleteLog(id){await deleteLogFromDB(id);}
@@ -493,36 +359,23 @@ function renderList(){
     const {wc,ac,wl,av}=whoMap[e.who]||whoMap['me'];
     let badges=`<span class="badge ${e.walkTime}">${TL[e.walkTime]||''}</span>`;
     if(e.walkTimeStr)badges+=`<span class="badge" style="background:#F0FDF4;color:#065F46;font-weight:700;">🕐 ${e.walkTimeStr}</span>`;
-    if(e.durationMins)badges+=`<span class="badge" style="background:#EEF2FF;color:#4338CA;font-weight:700;">⏱ ${e.durationMins} 分鐘</span>`;
     if(e.pee)badges+=`<span class="badge pee">💧 尿尿</span>`;
     if(e.poop){badges+=`<span class="badge poop">💩 便便</span>`;badges+=e.poopStatus==='normal'?`<span class="badge normal">✅ 正常</span>`:`<span class="badge abnormal">⚠️ 異常</span>`;}
     if(!e.pee&&!e.poop)badges+=`<span class="badge" style="background:#F5F5F4;color:#78716C">散步未排泄</span>`;
     const noteHtml=e.note?`<div class="entry-note">📝 ${e.note}</div>`:'';
-    const routeHtml=e.routeId?`<button class="entry-route-btn" onclick="toggleEntryMap(${e.id},${e.routeId})">🗺️ 查看路徑</button><div class="entry-route-map" id="entrymap-${e.id}"></div>`:'';
+    let routePlacesHtml='';
+    if(e.routePlaces&&e.routePlaces.length>0){
+      const chips=e.routePlaces.map((p,i)=>
+        `<span class="seq-chip" style="font-size:11px;padding:3px 8px;">${p.id} ${p.name}</span>${i<e.routePlaces.length-1?'<span class="seq-arrow">→</span>':''}`
+      ).join('');
+      routePlacesHtml=`<div class="entry-route-sequence">📍 ${chips}</div>`;
+    }
     return `<div class="log-entry ${wc}">
       <button class="delete-btn" onclick="deleteLog(${e.id})">🗑️</button>
       <div class="entry-header"><div class="entry-who"><div class="who-avatar ${ac}">${av}</div><span class="who-name">${wl}</span></div><span class="entry-time">${ts}</span></div>
-      <div class="badge-row">${badges}</div>${noteHtml}${routeHtml}
+      <div class="badge-row">${badges}</div>${routePlacesHtml}${noteHtml}
     </div>`;
   }).join('');
-}
-
-function toggleEntryMap(eid,rid){
-  const el=document.getElementById(`entrymap-${eid}`);
-  if(el.style.display==='block'){el.style.display='none';return;}
-  el.style.display='block';
-  if(logMaps[eid])return;
-  const r=routes.find(x=>x.id===rid);
-  if(!r||r.points.length<2){el.innerHTML='<div style="padding:16px;text-align:center;font-size:13px;color:#78716C">路徑資料不存在</div>';return;}
-  const m=L.map(el,{zoomControl:false,attributionControl:false});
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(m);
-  const ll=r.points.map(p=>[p.lat,p.lng]);
-  const poly=L.polyline(ll,{color:'#F59E0B',weight:4}).addTo(m);
-  L.circleMarker(ll[0],{radius:7,color:'#10B981',fillColor:'#10B981',fillOpacity:1}).addTo(m);
-  L.circleMarker(ll[ll.length-1],{radius:7,color:'#EF4444',fillColor:'#EF4444',fillOpacity:1}).addTo(m);
-  m.fitBounds(poly.getBounds(),{padding:[14,14]});
-  logMaps[eid]=m;
-  setTimeout(()=>m.invalidateSize(),100);
 }
 
 initData();
