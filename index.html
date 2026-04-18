@@ -8,6 +8,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+  firebase.initializeApp({
+    apiKey: "AIzaSyAsa3K7FLUSRlIM9aRuP6piBl9OUvTwUqY",
+    authDomain: "dog-walk-log.firebaseapp.com",
+    databaseURL: "https://dog-walk-log-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "dog-walk-log",
+    storageBucket: "dog-walk-log.firebasestorage.app",
+    messagingSenderId: "842615655439",
+    appId: "1:842615655439:web:c5a915986798e8ffade77a"
+  });
+  const db = firebase.database();
+</script>
 <style>
   :root {
     --bg:#FFF8F0;--card:#fff;--amber:#F59E0B;--amber-light:#FEF3C7;--amber-dark:#D97706;
@@ -157,8 +171,8 @@
 <div class="main">
 
   <div class="sync-banner">
-    <span class="icon">🔗</span>
-    <div>將此頁面連結分享給太太，兩人開啟同一連結即可<b>即時共享</b>紀錄。建議加入 LINE 書籤或釘選。</div>
+    <span class="icon">🔥</span>
+    <div>已連接 Firebase，與太太的資料<b>即時雙向同步</b>。將網址分享給太太，兩人開啟同一連結即可。</div>
   </div>
 
   <!-- GPS Card -->
@@ -275,22 +289,30 @@ let watchId = null, liveMap = null, livePolyline = null, timerInterval = null;
 let pendingRouteId = null;
 const routeMaps = {}, logMaps = {};
 
-// ─── Storage ───
-async function save(key, data, shared=true) {
-  const s = JSON.stringify(data);
-  try { if(window.storage) await window.storage.set(key,s,shared); else localStorage.setItem(key,s); }
-  catch(e) { localStorage.setItem(key,s); }
+// ─── Firebase Storage ───
+async function saveLog(entry) {
+  await db.ref('logs/' + entry.id).set(entry);
 }
-async function loadKey(key, shared=true) {
-  try {
-    if(window.storage){ const r=await window.storage.get(key,shared); return r&&r.value?JSON.parse(r.value):null; }
-    else { const r=localStorage.getItem(key); return r?JSON.parse(r):null; }
-  } catch(e){ const r=localStorage.getItem(key); return r?JSON.parse(r):null; }
+async function deleteLogFromDB(id) {
+  await db.ref('logs/' + id).remove();
 }
-async function initData() {
-  logs = (await loadKey(LOG_KEY)) || [];
-  routes = (await loadKey(ROUTE_KEY)) || [];
-  render(); renderPastRoutes();
+async function saveRoute(route) {
+  await db.ref('routes/' + route.id).set(route);
+}
+
+function initData() {
+  // 即時監聽 logs
+  db.ref('logs').on('value', snap => {
+    const data = snap.val() || {};
+    logs = Object.values(data).sort((a,b) => b.id - a.id);
+    render();
+  });
+  // 即時監聽 routes
+  db.ref('routes').on('value', snap => {
+    const data = snap.val() || {};
+    routes = Object.values(data).sort((a,b) => b.id - a.id);
+    renderPastRoutes();
+  });
 }
 
 // ─── GPS ───
@@ -335,7 +357,7 @@ function stopTracking() {
   const routeId=Date.now();
   const obj={id:routeId,points:currentRoute,startTime:new Date(trackingStart).toISOString(),endTime:new Date().toISOString(),distance:Math.round(dist),duration:mins};
   routes.unshift(obj);
-  save(ROUTE_KEY,routes);
+  saveRoute(obj);
   pendingRouteId=routeId;
   document.getElementById('gpsStatusText').textContent=`路徑已儲存 ✅　${Math.round(dist)} 公尺・${mins} 分鐘`;
   document.getElementById('attachRouteSection').style.display='block';
@@ -402,15 +424,13 @@ function switchTab(t){currentTab=t;['today','all'].forEach(x=>document.getElemen
 async function submitLog(){
   const walkTimeStr=document.getElementById('walkTimeInput').value||'';
   const entry={id:Date.now(),who:currentWho,walkTime,walkTimeStr,pee:hasPee,poop:hasPoop,poopStatus:hasPoop?poopStatus:null,note:document.getElementById('noteInput').value.trim(),routeId:pendingRouteId||null,time:new Date().toISOString()};
-  logs.unshift(entry);
-  await save(LOG_KEY,logs);
+  await saveLog(entry);
   document.getElementById('noteInput').value='';
   document.getElementById('attachRouteSection').style.display='none';
   pendingRouteId=null;
   document.getElementById('formCard').classList.remove('open');
-  render();
 }
-async function deleteLog(id){logs=logs.filter(l=>l.id!==id);await save(LOG_KEY,logs);render();}
+async function deleteLog(id){await deleteLogFromDB(id);}
 
 // ─── Render ───
 const TL={morning:'🌅 早上',evening:'🌆 傍晚',night:'🌙 晚上'};
@@ -474,9 +494,6 @@ function toggleEntryMap(eid,rid){
   logMaps[eid]=m;
   setTimeout(()=>m.invalidateSize(),100);
 }
-
-// Auto refresh
-setInterval(async()=>{logs=(await loadKey(LOG_KEY))||logs;render();},30000);
 
 initData();
 </script>
