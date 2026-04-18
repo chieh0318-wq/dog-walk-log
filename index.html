@@ -125,11 +125,13 @@
   @keyframes fadeIn{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:translateX(0);}}
   .log-entry.by-me{border-left-color:var(--amber);}
   .log-entry.by-wife{border-left-color:var(--purple);}
+  .log-entry.by-both{border-left-color:var(--green);}
   .entry-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
   .entry-who{display:flex;align-items:center;gap:8px;}
-  .who-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;font-family:'Nunito',sans-serif;}
+  .who-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;font-family:'Nunito',sans-serif;}
   .who-avatar.me{background:var(--amber-light);color:var(--amber-dark);}
   .who-avatar.wife{background:var(--purple-light);color:var(--purple);}
+  .who-avatar.both{background:var(--green-light);color:#065F46;}
   .who-name{font-size:14px;font-weight:700;}
   .entry-time{font-size:12px;color:var(--text-muted);}
   .badge-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;}
@@ -209,6 +211,7 @@
     <div class="toggle-group">
       <button class="toggle-btn active" id="btn-me" onclick="selectWho('me')">👨 我</button>
       <button class="toggle-btn" id="btn-wife" onclick="selectWho('wife')">👩 太太</button>
+      <button class="toggle-btn" id="btn-both" onclick="selectWho('both')">👫 一起</button>
     </div>
 
     <div class="section-label">遛狗時段</div>
@@ -331,18 +334,40 @@ function startTracking() {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(liveMap);
   }
   livePolyline=L.polyline([],{color:'#10B981',weight:4,opacity:.85}).addTo(liveMap);
+
+  // watchPosition：強制高精度、不用快取
   watchId=navigator.geolocation.watchPosition(
     pos=>{
       const {latitude:lat,longitude:lng}=pos.coords;
-      currentRoute.push({lat,lng,t:Date.now()});
-      livePolyline.addLatLng([lat,lng]);
-      liveMap.setView([lat,lng],liveMap.getZoom()<15?16:liveMap.getZoom());
-      updateStats();
+      addPoint(lat,lng);
     },
     err=>{ document.getElementById('gpsStatusText').textContent='無法取得位置：'+err.message; },
-    {enableHighAccuracy:true,maximumAge:3000,timeout:15000}
+    {enableHighAccuracy:true,maximumAge:0,timeout:10000}
   );
+
+  // 補點計時器：每 5 秒主動取一次位置，補足 watchPosition 頻率不足的空白
+  const fillTimer=setInterval(()=>{
+    if(!trackingActive){clearInterval(fillTimer);return;}
+    navigator.geolocation.getCurrentPosition(
+      pos=>addPoint(pos.coords.latitude,pos.coords.longitude),
+      ()=>{},
+      {enableHighAccuracy:true,maximumAge:0,timeout:8000}
+    );
+  },5000);
+
   timerInterval=setInterval(updateStats,1000);
+}
+
+function addPoint(lat,lng){
+  // 過濾重複點（與上一點距離 < 2m 不記錄）
+  if(currentRoute.length>0){
+    const last=currentRoute[currentRoute.length-1];
+    if(haversine(last.lat,last.lng,lat,lng)<2)return;
+  }
+  currentRoute.push({lat,lng,t:Date.now()});
+  livePolyline.addLatLng([lat,lng]);
+  liveMap.setView([lat,lng],liveMap.getZoom()<16?16:liveMap.getZoom());
+  updateStats();
 }
 
 function stopTracking() {
@@ -413,7 +438,7 @@ function togglePastMap(id){
 // ─── Form ───
 function setNowTime(){const n=new Date();document.getElementById('walkTimeInput').value=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;}
 function toggleForm(){const card=document.getElementById('formCard');card.classList.toggle('open');if(card.classList.contains('open'))setNowTime();}
-function selectWho(w){currentWho=w;['me','wife'].forEach(x=>document.getElementById(`btn-${x}`).classList.toggle('active',x===w));}
+function selectWho(w){currentWho=w;['me','wife','both'].forEach(x=>document.getElementById(`btn-${x}`).classList.toggle('active',x===w));}
 function selectTime(t){walkTime=t;['morning','evening','night'].forEach(x=>document.getElementById(`time-${x}`).classList.toggle('active',x===t));}
 function selectPee(v){hasPee=v;document.getElementById('pee-yes').classList.toggle('active',v);document.getElementById('pee-no').classList.toggle('active',!v);}
 function selectPoop(v){hasPoop=v;document.getElementById('poop-yes').classList.toggle('active',v);document.getElementById('poop-no').classList.toggle('active',!v);document.getElementById('poopStatusSection').style.display=v?'block':'none';}
@@ -423,7 +448,13 @@ function switchTab(t){currentTab=t;['today','all'].forEach(x=>document.getElemen
 // ─── Submit / Delete ───
 async function submitLog(){
   const walkTimeStr=document.getElementById('walkTimeInput').value||'';
-  const entry={id:Date.now(),who:currentWho,walkTime,walkTimeStr,pee:hasPee,poop:hasPoop,poopStatus:hasPoop?poopStatus:null,note:document.getElementById('noteInput').value.trim(),routeId:pendingRouteId||null,time:new Date().toISOString()};
+  // 取得歷時：若有附加路徑則用路徑時間，否則用手動時間欄位不記錄歷時
+  let durationMins = null;
+  if(pendingRouteId){
+    const r = routes.find(x=>x.id===pendingRouteId);
+    if(r) durationMins = r.duration;
+  }
+  const entry={id:Date.now(),who:currentWho,walkTime,walkTimeStr,durationMins,pee:hasPee,poop:hasPoop,poopStatus:hasPoop?poopStatus:null,note:document.getElementById('noteInput').value.trim(),routeId:pendingRouteId||null,time:new Date().toISOString()};
   await saveLog(entry);
   document.getElementById('noteInput').value='';
   document.getElementById('attachRouteSection').style.display='none';
@@ -458,12 +489,11 @@ function renderList(){
   container.innerHTML=filtered.map(e=>{
     const d=new Date(e.time);
     const ts=d.toLocaleString('zh-TW',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-    const wc=e.who==='me'?'by-me':'by-wife';
-    const ac=e.who==='me'?'me':'wife';
-    const wl=e.who==='me'?'我':'太太';
-    const av=e.who==='me'?'我':'妻';
+    const whoMap={me:{wc:'by-me',ac:'me',wl:'我帶出去',av:'我'},wife:{wc:'by-wife',ac:'wife',wl:'太太帶出去',av:'妻'},both:{wc:'by-both',ac:'both',wl:'一起出去',av:'我們'}};
+    const {wc,ac,wl,av}=whoMap[e.who]||whoMap['me'];
     let badges=`<span class="badge ${e.walkTime}">${TL[e.walkTime]||''}</span>`;
     if(e.walkTimeStr)badges+=`<span class="badge" style="background:#F0FDF4;color:#065F46;font-weight:700;">🕐 ${e.walkTimeStr}</span>`;
+    if(e.durationMins)badges+=`<span class="badge" style="background:#EEF2FF;color:#4338CA;font-weight:700;">⏱ ${e.durationMins} 分鐘</span>`;
     if(e.pee)badges+=`<span class="badge pee">💧 尿尿</span>`;
     if(e.poop){badges+=`<span class="badge poop">💩 便便</span>`;badges+=e.poopStatus==='normal'?`<span class="badge normal">✅ 正常</span>`:`<span class="badge abnormal">⚠️ 異常</span>`;}
     if(!e.pee&&!e.poop)badges+=`<span class="badge" style="background:#F5F5F4;color:#78716C">散步未排泄</span>`;
@@ -471,7 +501,7 @@ function renderList(){
     const routeHtml=e.routeId?`<button class="entry-route-btn" onclick="toggleEntryMap(${e.id},${e.routeId})">🗺️ 查看路徑</button><div class="entry-route-map" id="entrymap-${e.id}"></div>`:'';
     return `<div class="log-entry ${wc}">
       <button class="delete-btn" onclick="deleteLog(${e.id})">🗑️</button>
-      <div class="entry-header"><div class="entry-who"><div class="who-avatar ${ac}">${av}</div><span class="who-name">${wl}帶出去</span></div><span class="entry-time">${ts}</span></div>
+      <div class="entry-header"><div class="entry-who"><div class="who-avatar ${ac}">${av}</div><span class="who-name">${wl}</span></div><span class="entry-time">${ts}</span></div>
       <div class="badge-row">${badges}</div>${noteHtml}${routeHtml}
     </div>`;
   }).join('');
