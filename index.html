@@ -166,25 +166,6 @@
     <div>已連接 Firebase，與太太的資料<b>即時雙向同步</b>。將網址分享給太太，兩人開啟同一連結即可。</div>
   </div>
 
-  <!-- Route Planner Card -->
-  <div class="route-card">
-    <div class="route-card-title">📍 今日路線規劃</div>
-    <div class="section-label">點選地點（可重複、可折返）</div>
-    <div class="place-grid">
-      <button class="place-btn" onclick="addPlace('A','狗狗公園')"><span class="place-icon">🐾</span><span class="place-label">狗狗公園</span></button>
-      <button class="place-btn" onclick="addPlace('B','康寧國小正門')"><span class="place-icon">🏫</span><span class="place-label">康寧國小正門</span></button>
-      <button class="place-btn" onclick="addPlace('C','康寧國小側門')"><span class="place-icon">🚪</span><span class="place-label">康寧國小側門</span></button>
-      <button class="place-btn" onclick="addPlace('D','大笨鳥公園')"><span class="place-icon">🌳</span><span class="place-label">大笨鳥公園</span></button>
-      <button class="place-btn" onclick="addPlace('E','警智新村')"><span class="place-icon">🏘️</span><span class="place-label">警智新村</span></button>
-      <button class="place-btn" onclick="addPlace('F','康寧國小後山')"><span class="place-icon">⛰️</span><span class="place-label">康寧國小後山</span></button>
-    </div>
-    <div class="section-label">目前路線順序</div>
-    <div class="route-sequence" id="routeSequence">
-      <span class="route-sequence-empty">點選上方地點來建立路線</span>
-    </div>
-    <button class="route-clear-btn" onclick="clearRoute()">🗑️ 清除路線</button>
-  </div>
-
   <!-- Add -->
   <button class="add-btn" onclick="toggleForm()">＋ 記錄遛狗</button>
 
@@ -211,6 +192,20 @@
       <input type="time" id="walkTimeInput" style="flex:1;padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-family:'Noto Sans TC',sans-serif;font-size:15px;color:var(--text);background:#fff;outline:none;">
       <button onclick="setNowTime()" style="padding:10px 14px;border:2px solid var(--amber);border-radius:12px;background:var(--amber-light);color:var(--amber-dark);font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;">⏱ 現在時間</button>
     </div>
+
+    <div class="section-label">今次路線（可重複點選）</div>
+    <div class="place-grid">
+      <button class="place-btn" onclick="addPlace('A','狗狗公園')"><span class="place-icon">🐾</span><span class="place-label">狗狗公園</span></button>
+      <button class="place-btn" onclick="addPlace('B','康寧國小正門')"><span class="place-icon">🏫</span><span class="place-label">康寧國小正門</span></button>
+      <button class="place-btn" onclick="addPlace('C','康寧國小側門')"><span class="place-icon">🚪</span><span class="place-label">康寧國小側門</span></button>
+      <button class="place-btn" onclick="addPlace('D','大笨鳥公園')"><span class="place-icon">🌳</span><span class="place-label">大笨鳥公園</span></button>
+      <button class="place-btn" onclick="addPlace('E','警智新村')"><span class="place-icon">🏘️</span><span class="place-label">警智新村</span></button>
+      <button class="place-btn" onclick="addPlace('F','康寧國小後山')"><span class="place-icon">⛰️</span><span class="place-label">康寧國小後山</span></button>
+    </div>
+    <div class="route-sequence" id="routeSequence">
+      <span class="route-sequence-empty">點選上方地點來建立路線</span>
+    </div>
+    <button class="route-clear-btn" onclick="clearRoute()" style="margin-bottom:16px;">🗑️ 清除路線</button>
 
     <div class="section-label">尿尿了嗎？</div>
     <div class="toggle-group">
@@ -325,6 +320,8 @@ async function submitLog(){
   };
   await saveLog(entry);
   document.getElementById('noteInput').value='';
+  routeSequence=[];
+  renderRouteSequence();
   document.getElementById('formCard').classList.remove('open');
 }
 async function deleteLog(id){await deleteLogFromDB(id);}
