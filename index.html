@@ -94,6 +94,16 @@
 
   .attach-route-box{background:#F0FDF4;border:1.5px solid var(--green);border-radius:10px;padding:10px 12px;font-size:13px;color:#065F46;font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:16px;}
 
+  /* EDIT MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:flex-end;justify-content:center;}
+  .modal-overlay.hidden{display:none;}
+  .modal-sheet{background:#fff;border-radius:24px 24px 0 0;padding:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;animation:sheetUp .25s ease;}
+  @keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+  .modal-title{font-family:'Nunito',sans-serif;font-size:17px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+  .modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted);padding:0 4px;}
+  .edit-btn{position:absolute;top:12px;right:40px;background:none;border:none;font-size:16px;cursor:pointer;opacity:.35;transition:opacity .15s;padding:2px 6px;}
+  .edit-btn:active{opacity:1;}
+
   /* SUMMARY */
   .today-summary{background:#fff;border-radius:16px;padding:16px;box-shadow:var(--shadow);margin-bottom:20px;display:flex;gap:12px;}
   .summary-item{flex:1;text-align:center;padding:12px 8px;border-radius:12px;}
@@ -280,6 +290,85 @@
   <div id="logList"></div>
 </div>
 
+<!-- Edit Modal -->
+<div class="modal-overlay hidden" id="editModal" onclick="closeEditModal(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-title">✏️ 編輯紀錄 <button class="modal-close" onclick="closeEditModal()">✕</button></div>
+
+    <div class="section-label">誰帶牠出去？</div>
+    <div class="toggle-group">
+      <button class="toggle-btn" id="e-btn-me" onclick="eSelectWho('me')">👨 我</button>
+      <button class="toggle-btn" id="e-btn-wife" onclick="eSelectWho('wife')">👩 太太</button>
+      <button class="toggle-btn" id="e-btn-both" onclick="eSelectWho('both')">👫 一起</button>
+    </div>
+
+    <div class="section-label">遛狗時段</div>
+    <div class="time-toggle-group">
+      <button class="time-btn morning" id="e-time-morning" onclick="eSelectTime('morning')"><span class="t-icon">🌅</span>早上</button>
+      <button class="time-btn evening" id="e-time-evening" onclick="eSelectTime('evening')"><span class="t-icon">🌆</span>傍晚</button>
+      <button class="time-btn night" id="e-time-night" onclick="eSelectTime('night')"><span class="t-icon">🌙</span>晚上</button>
+    </div>
+
+    <div class="section-label">遛狗時間</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-end;">
+      <div style="flex:1;">
+        <div style="font-size:11px;color:var(--text-muted);font-weight:700;margin-bottom:4px;">出發時間</div>
+        <input type="time" id="e-walkStartTime" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-family:'Noto Sans TC',sans-serif;font-size:15px;color:var(--text);background:#fff;outline:none;" oninput="eCalcDuration()">
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:11px;color:var(--text-muted);font-weight:700;margin-bottom:4px;">回家時間</div>
+        <input type="time" id="e-walkEndTime" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-family:'Noto Sans TC',sans-serif;font-size:15px;color:var(--text);background:#fff;outline:none;" oninput="eCalcDuration()">
+      </div>
+    </div>
+    <div id="e-durationDisplay" style="display:none;background:#EEF2FF;border-radius:10px;padding:8px 12px;margin-bottom:16px;font-size:13px;font-weight:700;color:#4338CA;">⏱ 散步時間：<span id="e-durationText"></span></div>
+
+    <div class="section-label">今次路線</div>
+    <div class="place-grid">
+      <button class="place-btn" onclick="eAddPlace('A','狗狗公園')"><span class="place-icon">🐾</span><span class="place-label">狗狗公園</span></button>
+      <button class="place-btn" onclick="eAddPlace('B','康寧國小正門')"><span class="place-icon">🏫</span><span class="place-label">康寧國小正門</span></button>
+      <button class="place-btn" onclick="eAddPlace('C','康寧國小側門')"><span class="place-icon">🚪</span><span class="place-label">康寧國小側門</span></button>
+      <button class="place-btn" onclick="eAddPlace('D','大笨鳥公園')"><span class="place-icon">🌳</span><span class="place-label">大笨鳥公園</span></button>
+      <button class="place-btn" onclick="eAddPlace('E','警智新村')"><span class="place-icon">🏘️</span><span class="place-label">警智新村</span></button>
+      <button class="place-btn" onclick="eAddPlace('F','康寧國小後山')"><span class="place-icon">⛰️</span><span class="place-label">康寧國小後山</span></button>
+    </div>
+    <div class="route-sequence" id="e-routeSequence"><span class="route-sequence-empty">點選上方地點來建立路線</span></div>
+    <button class="route-clear-btn" onclick="eClearRoute()" style="margin-bottom:16px;">🗑️ 清除路線</button>
+
+    <div class="section-label">尿尿了嗎？</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
+      <button class="toggle-btn" id="e-pee-yes" onclick="eSelectPee(true)" style="flex:1;">💧 有</button>
+      <button class="toggle-btn" id="e-pee-no" onclick="eSelectPee(false)" style="flex:1;">🚫 沒有</button>
+      <div id="e-peeCountWrap">
+        <select id="e-peeCount" style="padding:10px 8px;border:2px solid var(--amber);border-radius:12px;background:var(--amber-light);color:var(--amber-dark);font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;outline:none;cursor:pointer;">
+          <option value="1">1 次</option><option value="2">2 次</option><option value="3">3 次</option><option value="4">4 次</option><option value="5">5 次</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-label">便便了嗎？</div>
+    <div style="display:flex;gap:8px;margin-bottom:0;align-items:center;">
+      <button class="toggle-btn" id="e-poop-yes" onclick="eSelectPoop(true)" style="flex:1;">💩 有</button>
+      <button class="toggle-btn" id="e-poop-no" onclick="eSelectPoop(false)" style="flex:1;">🚫 沒有</button>
+      <div id="e-poopCountWrap">
+        <select id="e-poopCount" style="padding:10px 8px;border:2px solid #92400E;border-radius:12px;background:#FEF3C7;color:#92400E;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;outline:none;cursor:pointer;">
+          <option value="0.5">0.5 條</option><option value="1">1 條</option><option value="1.5">1.5 條</option><option value="2">2 條</option><option value="2.5">2.5 條</option><option value="3">3 條</option>
+        </select>
+      </div>
+    </div>
+    <div id="e-poopStatusSection" style="margin-top:12px;margin-bottom:16px;">
+      <div class="section-label">便便狀況</div>
+      <div class="toggle-group">
+        <button class="toggle-btn" id="e-poop-normal" onclick="eSelectPoopStatus('normal')">✅ 正常</button>
+        <button class="toggle-btn" id="e-poop-abnormal" onclick="eSelectPoopStatus('abnormal')">⚠️ 異常</button>
+      </div>
+    </div>
+
+    <div class="section-label">備註</div>
+    <textarea class="note-input" id="e-noteInput" rows="2" placeholder="備註..."></textarea>
+    <button class="submit-btn" onclick="saveEdit()">💾 儲存修改</button>
+  </div>
+</div>
+
 <script>
 const LOG_KEY = 'dogWalkLog_v2';
 let logs = [];
@@ -309,6 +398,9 @@ function addPlace(id, name) {
   routeSequence.push({id, name});
   renderRouteSequence();
 }
+function removeLastPlace() {
+  if(routeSequence.length>0){ routeSequence.pop(); renderRouteSequence(); }
+}
 function clearRoute() {
   routeSequence = [];
   renderRouteSequence();
@@ -319,9 +411,10 @@ function renderRouteSequence() {
     el.innerHTML = '<span class="route-sequence-empty">點選上方地點來建立路線</span>';
     return;
   }
-  el.innerHTML = routeSequence.map((p, i) =>
-    `<span class="seq-chip">${p.id} ${p.name}</span>${i < routeSequence.length-1 ? '<span class="seq-arrow">→</span>' : ''}`
+  const chips = routeSequence.map((p,i) =>
+    `<span class="seq-chip">${p.id} ${p.name}</span>${i<routeSequence.length-1?'<span class="seq-arrow">→</span>':''}`
   ).join('');
+  el.innerHTML = chips + `<button onclick="removeLastPlace()" style="margin-left:6px;padding:3px 10px;border:1.5px solid var(--red);border-radius:20px;background:var(--red-light);color:var(--red);font-size:12px;font-weight:700;cursor:pointer;">↩ 撤銷</button>`;
 }
 
 // ─── Form ───
@@ -448,11 +541,89 @@ function renderList(){
       routePlacesHtml=`<div class="entry-route-sequence">📍 ${chips}</div>`;
     }
     return `<div class="log-entry ${wc}">
+      <button class="edit-btn" onclick="openEditModal(${e.id})">✏️</button>
       <button class="delete-btn" onclick="deleteLog(${e.id})">🗑️</button>
       <div class="entry-header"><div class="entry-who"><div class="who-avatar ${ac}">${av}</div><span class="who-name">${wl}</span></div><span class="entry-time">${ts}</span></div>
       <div class="badge-row">${badges}</div>${routePlacesHtml}${noteHtml}
     </div>`;
   }).join('');
+}
+
+// ─── Edit Modal ───
+let editingId = null;
+let eWho='me', eWalkTime='morning', ePee=true, ePoop=true, ePoopStatus='normal';
+let eRouteSeq=[];
+
+function openEditModal(id){
+  const e=logs.find(l=>l.id===id);
+  if(!e)return;
+  editingId=id;
+  eWho=e.who||'me'; eWalkTime=e.walkTime||'morning';
+  ePee=e.pee!==false; ePoop=e.poop!==false; ePoopStatus=e.poopStatus||'normal';
+  eRouteSeq=e.routePlaces?[...e.routePlaces]:[];
+
+  // populate fields
+  ['me','wife','both'].forEach(x=>document.getElementById(`e-btn-${x}`).classList.toggle('active',x===eWho));
+  ['morning','evening','night'].forEach(x=>document.getElementById(`e-time-${x}`).classList.toggle('active',x===eWalkTime));
+  document.getElementById('e-walkStartTime').value=e.walkStartTime||'';
+  document.getElementById('e-walkEndTime').value=e.walkEndTime||'';
+  eCalcDuration();
+  eSelectPee(ePee);
+  document.getElementById('e-peeCount').value=e.peeCount||1;
+  eSelectPoop(ePoop);
+  document.getElementById('e-poopCount').value=e.poopCount||1;
+  ['normal','abnormal'].forEach(x=>document.getElementById(`e-poop-${x}`).classList.toggle('active',x===ePoopStatus));
+  document.getElementById('e-noteInput').value=e.note||'';
+  eRenderRouteSequence();
+  document.getElementById('editModal').classList.remove('hidden');
+}
+function closeEditModal(ev){
+  if(ev&&ev.target!==document.getElementById('editModal'))return;
+  document.getElementById('editModal').classList.add('hidden');
+  editingId=null;
+}
+function eCalcDuration(){
+  const s=document.getElementById('e-walkStartTime').value;
+  const en=document.getElementById('e-walkEndTime').value;
+  const disp=document.getElementById('e-durationDisplay');
+  if(s&&en){
+    const [sh,sm]=s.split(':').map(Number),[eh,em]=en.split(':').map(Number);
+    const diff=(eh*60+em)-(sh*60+sm);
+    if(diff>0){disp.style.display='block';document.getElementById('e-durationText').textContent=diff+' 分鐘';}
+    else disp.style.display='none';
+  } else disp.style.display='none';
+}
+function eSelectWho(w){eWho=w;['me','wife','both'].forEach(x=>document.getElementById(`e-btn-${x}`).classList.toggle('active',x===w));}
+function eSelectTime(t){eWalkTime=t;['morning','evening','night'].forEach(x=>document.getElementById(`e-time-${x}`).classList.toggle('active',x===t));}
+function eSelectPee(v){ePee=v;document.getElementById('e-pee-yes').classList.toggle('active',v);document.getElementById('e-pee-no').classList.toggle('active',!v);document.getElementById('e-peeCountWrap').style.display=v?'block':'none';}
+function eSelectPoop(v){ePoop=v;document.getElementById('e-poop-yes').classList.toggle('active',v);document.getElementById('e-poop-no').classList.toggle('active',!v);document.getElementById('e-poopStatusSection').style.display=v?'block':'none';document.getElementById('e-poopCountWrap').style.display=v?'block':'none';}
+function eSelectPoopStatus(s){ePoopStatus=s;['normal','abnormal'].forEach(x=>document.getElementById(`e-poop-${x}`).classList.toggle('active',x===s));}
+function eAddPlace(id,name){eRouteSeq.push({id,name});eRenderRouteSequence();}
+function eRemoveLastPlace(){if(eRouteSeq.length>0){eRouteSeq.pop();eRenderRouteSequence();}}
+function eClearRoute(){eRouteSeq=[];eRenderRouteSequence();}
+function eRenderRouteSequence(){
+  const el=document.getElementById('e-routeSequence');
+  if(eRouteSeq.length===0){el.innerHTML='<span class="route-sequence-empty">點選上方地點來建立路線</span>';return;}
+  const chips=eRouteSeq.map((p,i)=>`<span class="seq-chip">${p.id} ${p.name}</span>${i<eRouteSeq.length-1?'<span class="seq-arrow">→</span>':''}`).join('');
+  el.innerHTML=chips+`<button onclick="eRemoveLastPlace()" style="margin-left:6px;padding:3px 10px;border:1.5px solid var(--red);border-radius:20px;background:var(--red-light);color:var(--red);font-size:12px;font-weight:700;cursor:pointer;">↩ 撤銷</button>`;
+}
+async function saveEdit(){
+  if(!editingId)return;
+  const orig=logs.find(l=>l.id===editingId);
+  const s=document.getElementById('e-walkStartTime').value||'';
+  const en=document.getElementById('e-walkEndTime').value||'';
+  let dur=null;
+  if(s&&en){const[sh,sm]=s.split(':').map(Number),[eh,em]=en.split(':').map(Number),d=(eh*60+em)-(sh*60+sm);if(d>0)dur=d;}
+  const updated={...orig,who:eWho,walkTime:eWalkTime,walkStartTime:s,walkEndTime:en,durationMins:dur,
+    pee:ePee,peeCount:ePee?Number(document.getElementById('e-peeCount').value):0,
+    poop:ePoop,poopCount:ePoop?Number(document.getElementById('e-poopCount').value):0,
+    poopStatus:ePoop?ePoopStatus:null,
+    routePlaces:eRouteSeq.length>0?[...eRouteSeq]:null,
+    note:document.getElementById('e-noteInput').value.trim()
+  };
+  await saveLog(updated);
+  document.getElementById('editModal').classList.add('hidden');
+  editingId=null;
 }
 
 initData();
