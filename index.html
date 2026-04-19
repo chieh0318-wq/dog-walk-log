@@ -188,10 +188,18 @@
     </div>
 
     <div class="section-label">遛狗時間</div>
-    <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
-      <input type="time" id="walkTimeInput" style="flex:1;padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-family:'Noto Sans TC',sans-serif;font-size:15px;color:var(--text);background:#fff;outline:none;">
-      <button onclick="setNowTime()" style="padding:10px 14px;border:2px solid var(--amber);border-radius:12px;background:var(--amber-light);color:var(--amber-dark);font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;">⏱ 現在時間</button>
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-end;">
+      <div style="flex:1;">
+        <div style="font-size:11px;color:var(--text-muted);font-weight:700;margin-bottom:4px;">出發時間</div>
+        <input type="time" id="walkStartTime" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-family:'Noto Sans TC',sans-serif;font-size:15px;color:var(--text);background:#fff;outline:none;" oninput="calcDuration()">
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:11px;color:var(--text-muted);font-weight:700;margin-bottom:4px;">回家時間</div>
+        <input type="time" id="walkEndTime" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-family:'Noto Sans TC',sans-serif;font-size:15px;color:var(--text);background:#fff;outline:none;" oninput="calcDuration()">
+      </div>
+      <button onclick="setEndTimeNow()" style="flex-shrink:0;padding:10px 12px;border:2px solid var(--amber);border-radius:12px;background:var(--amber-light);color:var(--amber-dark);font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;margin-bottom:0;">⏱ 現在</button>
     </div>
+    <div id="durationDisplay" style="display:none;background:#EEF2FF;border-radius:10px;padding:8px 12px;margin-bottom:16px;font-size:13px;font-weight:700;color:#4338CA;">⏱ 散步時間：<span id="durationText"></span></div>
 
     <div class="section-label">今次路線（可重複點選）</div>
     <div class="place-grid">
@@ -208,15 +216,34 @@
     <button class="route-clear-btn" onclick="clearRoute()" style="margin-bottom:16px;">🗑️ 清除路線</button>
 
     <div class="section-label">尿尿了嗎？</div>
-    <div class="toggle-group">
-      <button class="toggle-btn active" id="pee-yes" onclick="selectPee(true)">💧 有</button>
-      <button class="toggle-btn" id="pee-no" onclick="selectPee(false)">🚫 沒有</button>
+    <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
+      <button class="toggle-btn active" id="pee-yes" onclick="selectPee(true)" style="flex:1;">💧 有</button>
+      <button class="toggle-btn" id="pee-no" onclick="selectPee(false)" style="flex:1;">🚫 沒有</button>
+      <div id="peeCountWrap">
+        <select id="peeCount" style="padding:10px 8px;border:2px solid var(--amber);border-radius:12px;background:var(--amber-light);color:var(--amber-dark);font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;outline:none;cursor:pointer;">
+          <option value="1">1 次</option>
+          <option value="2">2 次</option>
+          <option value="3">3 次</option>
+          <option value="4">4 次</option>
+          <option value="5">5 次</option>
+        </select>
+      </div>
     </div>
 
     <div class="section-label">便便了嗎？</div>
-    <div class="toggle-group" style="margin-bottom:0">
-      <button class="toggle-btn active" id="poop-yes" onclick="selectPoop(true)">💩 有</button>
-      <button class="toggle-btn" id="poop-no" onclick="selectPoop(false)">🚫 沒有</button>
+    <div style="display:flex;gap:8px;margin-bottom:0;align-items:center;">
+      <button class="toggle-btn active" id="poop-yes" onclick="selectPoop(true)" style="flex:1;">💩 有</button>
+      <button class="toggle-btn" id="poop-no" onclick="selectPoop(false)" style="flex:1;">🚫 沒有</button>
+      <div id="poopCountWrap">
+        <select id="poopCount" style="padding:10px 8px;border:2px solid #92400E;border-radius:12px;background:#FEF3C7;color:#92400E;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;outline:none;cursor:pointer;">
+          <option value="0.5">0.5 條</option>
+          <option value="1" selected>1 條</option>
+          <option value="1.5">1.5 條</option>
+          <option value="2">2 條</option>
+          <option value="2.5">2.5 條</option>
+          <option value="3">3 條</option>
+        </select>
+      </div>
     </div>
 
     <div id="poopStatusSection" style="margin-top:12px;margin-bottom:16px">
@@ -297,31 +324,80 @@ function renderRouteSequence() {
   ).join('');
 }
 
-// ─── GPS ───
 // ─── Form ───
-function setNowTime(){const n=new Date();document.getElementById('walkTimeInput').value=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;}
-function toggleForm(){const card=document.getElementById('formCard');card.classList.toggle('open');if(card.classList.contains('open'))setNowTime();}
+function setEndTimeNow(){
+  const n=new Date();
+  document.getElementById('walkEndTime').value=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+  calcDuration();
+}
+function calcDuration(){
+  const s=document.getElementById('walkStartTime').value;
+  const e=document.getElementById('walkEndTime').value;
+  const disp=document.getElementById('durationDisplay');
+  if(s&&e){
+    const [sh,sm]=s.split(':').map(Number);
+    const [eh,em]=e.split(':').map(Number);
+    const diff=(eh*60+em)-(sh*60+sm);
+    if(diff>0){
+      disp.style.display='block';
+      document.getElementById('durationText').textContent=`${diff} 分鐘`;
+    } else { disp.style.display='none'; }
+  } else { disp.style.display='none'; }
+}
+function toggleForm(){
+  const card=document.getElementById('formCard');
+  card.classList.toggle('open');
+  if(card.classList.contains('open')){
+    const n=new Date();
+    const t=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+    document.getElementById('walkEndTime').value=t;
+    document.getElementById('walkStartTime').value='';
+    document.getElementById('durationDisplay').style.display='none';
+  }
+}
 function selectWho(w){currentWho=w;['me','wife','both'].forEach(x=>document.getElementById(`btn-${x}`).classList.toggle('active',x===w));}
 function selectTime(t){walkTime=t;['morning','evening','night'].forEach(x=>document.getElementById(`time-${x}`).classList.toggle('active',x===t));}
-function selectPee(v){hasPee=v;document.getElementById('pee-yes').classList.toggle('active',v);document.getElementById('pee-no').classList.toggle('active',!v);}
-function selectPoop(v){hasPoop=v;document.getElementById('poop-yes').classList.toggle('active',v);document.getElementById('poop-no').classList.toggle('active',!v);document.getElementById('poopStatusSection').style.display=v?'block':'none';}
+function selectPee(v){
+  hasPee=v;
+  document.getElementById('pee-yes').classList.toggle('active',v);
+  document.getElementById('pee-no').classList.toggle('active',!v);
+  document.getElementById('peeCountWrap').style.display=v?'block':'none';
+}
+function selectPoop(v){
+  hasPoop=v;
+  document.getElementById('poop-yes').classList.toggle('active',v);
+  document.getElementById('poop-no').classList.toggle('active',!v);
+  document.getElementById('poopStatusSection').style.display=v?'block':'none';
+  document.getElementById('poopCountWrap').style.display=v?'block':'none';
+}
 function selectPoopStatus(s){poopStatus=s;document.getElementById('poop-normal').classList.toggle('active',s==='normal');document.getElementById('poop-abnormal').classList.toggle('active',s==='abnormal');}
 function switchTab(t){currentTab=t;['today','all'].forEach(x=>document.getElementById(`tab-${x}`).classList.toggle('active',x===t));renderList();}
 
 // ─── Submit / Delete ───
 async function submitLog(){
-  const walkTimeStr=document.getElementById('walkTimeInput').value||'';
+  const startTime=document.getElementById('walkStartTime').value||'';
+  const endTime=document.getElementById('walkEndTime').value||'';
+  let durationMins=null;
+  if(startTime&&endTime){
+    const [sh,sm]=startTime.split(':').map(Number);
+    const [eh,em]=endTime.split(':').map(Number);
+    const diff=(eh*60+em)-(sh*60+sm);
+    if(diff>0) durationMins=diff;
+  }
+  const peeCount=hasPee?Number(document.getElementById('peeCount').value):0;
+  const poopCount=hasPoop?Number(document.getElementById('poopCount').value):0;
   const entry={
-    id:Date.now(),who:currentWho,walkTime,walkTimeStr,
-    pee:hasPee,poop:hasPoop,poopStatus:hasPoop?poopStatus:null,
-    routePlaces: routeSequence.length>0 ? [...routeSequence] : null,
+    id:Date.now(),who:currentWho,walkTime,
+    walkStartTime:startTime, walkEndTime:endTime, durationMins,
+    pee:hasPee, peeCount,
+    poop:hasPoop, poopCount, poopStatus:hasPoop?poopStatus:null,
+    routePlaces:routeSequence.length>0?[...routeSequence]:null,
     note:document.getElementById('noteInput').value.trim(),
     time:new Date().toISOString()
   };
   await saveLog(entry);
   document.getElementById('noteInput').value='';
-  routeSequence=[];
-  renderRouteSequence();
+  routeSequence=[]; renderRouteSequence();
   document.getElementById('formCard').classList.remove('open');
 }
 async function deleteLog(id){await deleteLogFromDB(id);}
@@ -355,9 +431,13 @@ function renderList(){
     const whoMap={me:{wc:'by-me',ac:'me',wl:'我帶出去',av:'我'},wife:{wc:'by-wife',ac:'wife',wl:'太太帶出去',av:'妻'},both:{wc:'by-both',ac:'both',wl:'一起出去',av:'我們'}};
     const {wc,ac,wl,av}=whoMap[e.who]||whoMap['me'];
     let badges=`<span class="badge ${e.walkTime}">${TL[e.walkTime]||''}</span>`;
-    if(e.walkTimeStr)badges+=`<span class="badge" style="background:#F0FDF4;color:#065F46;font-weight:700;">🕐 ${e.walkTimeStr}</span>`;
-    if(e.pee)badges+=`<span class="badge pee">💧 尿尿</span>`;
-    if(e.poop){badges+=`<span class="badge poop">💩 便便</span>`;badges+=e.poopStatus==='normal'?`<span class="badge normal">✅ 正常</span>`:`<span class="badge abnormal">⚠️ 異常</span>`;}
+    if(e.walkStartTime)badges+=`<span class="badge" style="background:#F0FDF4;color:#065F46;font-weight:700;">🕐 ${e.walkStartTime}${e.walkEndTime?'–'+e.walkEndTime:''}</span>`;
+    if(e.durationMins)badges+=`<span class="badge" style="background:#EEF2FF;color:#4338CA;font-weight:700;">⏱ ${e.durationMins} 分鐘</span>`;
+    if(e.pee)badges+=`<span class="badge pee">💧 尿尿 ${e.peeCount||1} 次</span>`;
+    if(e.poop){
+      badges+=`<span class="badge poop">💩 便便 ${e.poopCount||1} 條</span>`;
+      badges+=e.poopStatus==='normal'?`<span class="badge normal">✅ 正常</span>`:`<span class="badge abnormal">⚠️ 異常</span>`;
+    }
     if(!e.pee&&!e.poop)badges+=`<span class="badge" style="background:#F5F5F4;color:#78716C">散步未排泄</span>`;
     const noteHtml=e.note?`<div class="entry-note">📝 ${e.note}</div>`:'';
     let routePlacesHtml='';
