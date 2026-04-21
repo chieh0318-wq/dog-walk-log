@@ -207,6 +207,12 @@
   <div class="form-card" id="formCard">
     <div class="form-title">📝 新增遛狗紀錄</div>
 
+    <div class="section-label">遛狗日期</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
+      <input type="date" id="walkDate" style="flex:1;padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-family:'Noto Sans TC',sans-serif;font-size:15px;color:var(--text);background:#fff;outline:none;">
+      <button onclick="setDateToday()" style="padding:10px 12px;border:2px solid var(--amber);border-radius:12px;background:var(--amber-light);color:var(--amber-dark);font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">📅 今天</button>
+    </div>
+
     <div class="section-label">誰帶牠出去？</div>
     <div class="toggle-group">
       <button class="toggle-btn active" id="btn-me" onclick="selectWho('me')">👨 我</button>
@@ -497,6 +503,7 @@ function renderRouteSequence() {
 }
 
 // ─── Form ───
+function setDateToday(){document.getElementById('walkDate').value=new Date().toISOString().slice(0,10);}
 function setEndTimeNow(){
   const n=new Date();
   document.getElementById('walkEndTime').value=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
@@ -520,6 +527,7 @@ function toggleForm(){
   const card=document.getElementById('formCard');
   card.classList.toggle('open');
   if(card.classList.contains('open')){
+    setDateToday();
     const n=new Date();
     const t=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
     document.getElementById('walkEndTime').value=t;
@@ -549,6 +557,7 @@ function switchTab(t){currentTab=t;['today','all'].forEach(x=>document.getElemen
 async function submitLog(){
   const startTime=document.getElementById('walkStartTime').value||'';
   const endTime=document.getElementById('walkEndTime').value||'';
+  const walkDate=document.getElementById('walkDate').value||new Date().toISOString().slice(0,10);
   let durationMins=null;
   if(startTime&&endTime){
     const [sh,sm]=startTime.split(':').map(Number);
@@ -556,6 +565,10 @@ async function submitLog(){
     const diff=(eh*60+em)-(sh*60+sm);
     if(diff>0) durationMins=diff;
   }
+  // 用選擇的日期 + 回家時間（或當下時間）組合成 timestamp
+  const timeStr=endTime||new Date().toTimeString().slice(0,5);
+  const recordTime=new Date(`${walkDate}T${timeStr}:00`).toISOString();
+
   const peeCount=hasPee?Number(document.getElementById('peeCount').value):0;
   const poopCount=hasPoop?Number(document.getElementById('poopCount').value):0;
   const entry={
@@ -565,7 +578,7 @@ async function submitLog(){
     poop:hasPoop, poopCount, poopStatus:hasPoop?poopStatus:null,
     routePlaces:routeSequence.length>0?[...routeSequence]:null,
     note:document.getElementById('noteInput').value.trim(),
-    time:new Date().toISOString()
+    time:recordTime
   };
   await saveLog(entry);
   document.getElementById('noteInput').value='';
