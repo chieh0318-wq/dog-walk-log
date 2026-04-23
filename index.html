@@ -249,6 +249,14 @@
       <button class="place-btn" onclick="addPlace('D','大笨鳥公園')"><span class="place-icon">🌳</span><span class="place-label">大笨鳥公園</span></button>
       <button class="place-btn" onclick="addPlace('E','警智新村')"><span class="place-icon">🏘️</span><span class="place-label">警智新村</span></button>
       <button class="place-btn" onclick="addPlace('F','康寧國小後山')"><span class="place-icon">⛰️</span><span class="place-label">康寧國小後山</span></button>
+      <button class="place-btn" onclick="addPlace('G','成功公園')"><span class="place-icon">🏞️</span><span class="place-label">成功公園</span></button>
+      <button class="place-btn" onclick="addCustomPlace()" style="border-style:dashed;"><span class="place-icon">✏️</span><span class="place-label">其他（自填）</span></button>
+    </div>
+    <div id="customPlaceWrap" style="display:none;margin-bottom:10px;">
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="customPlaceInput" placeholder="輸入地點名稱" style="flex:1;padding:10px 12px;border:2px solid var(--green);border-radius:12px;font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--text);background:#fff;outline:none;">
+        <button onclick="confirmCustomPlace()" style="padding:10px 14px;border:none;border-radius:12px;background:var(--green);color:#fff;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">加入</button>
+      </div>
     </div>
     <div class="route-sequence" id="routeSequence">
       <span class="route-sequence-empty">點選上方地點來建立路線</span>
@@ -415,6 +423,14 @@
       <button class="place-btn" onclick="eAddPlace('D','大笨鳥公園')"><span class="place-icon">🌳</span><span class="place-label">大笨鳥公園</span></button>
       <button class="place-btn" onclick="eAddPlace('E','警智新村')"><span class="place-icon">🏘️</span><span class="place-label">警智新村</span></button>
       <button class="place-btn" onclick="eAddPlace('F','康寧國小後山')"><span class="place-icon">⛰️</span><span class="place-label">康寧國小後山</span></button>
+      <button class="place-btn" onclick="eAddPlace('G','成功公園')"><span class="place-icon">🏞️</span><span class="place-label">成功公園</span></button>
+      <button class="place-btn" onclick="eAddCustomPlace()" style="border-style:dashed;"><span class="place-icon">✏️</span><span class="place-label">其他（自填）</span></button>
+    </div>
+    <div id="e-customPlaceWrap" style="display:none;margin-bottom:10px;">
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="e-customPlaceInput" placeholder="輸入地點名稱" style="flex:1;padding:10px 12px;border:2px solid var(--green);border-radius:12px;font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--text);background:#fff;outline:none;">
+        <button onclick="eConfirmCustomPlace()" style="padding:10px 14px;border:none;border-radius:12px;background:var(--green);color:#fff;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">加入</button>
+      </div>
     </div>
     <div class="route-sequence" id="e-routeSequence"><span class="route-sequence-empty">點選上方地點來建立路線</span></div>
     <button class="route-clear-btn" onclick="eClearRoute()" style="margin-bottom:16px;">🗑️ 清除路線</button>
@@ -503,7 +519,30 @@ function renderRouteSequence() {
 }
 
 // ─── Form ───
-function setDateToday(){document.getElementById('walkDate').value=new Date().toISOString().slice(0,10);}
+function addCustomPlace(){
+  const wrap=document.getElementById('customPlaceWrap');
+  wrap.style.display=wrap.style.display==='none'?'block':'none';
+  if(wrap.style.display==='block') document.getElementById('customPlaceInput').focus();
+}
+function confirmCustomPlace(){
+  const val=document.getElementById('customPlaceInput').value.trim();
+  if(!val) return;
+  addPlace('Z', val);
+  document.getElementById('customPlaceInput').value='';
+  document.getElementById('customPlaceWrap').style.display='none';
+}
+function eAddCustomPlace(){
+  const wrap=document.getElementById('e-customPlaceWrap');
+  wrap.style.display=wrap.style.display==='none'?'block':'none';
+  if(wrap.style.display==='block') document.getElementById('e-customPlaceInput').focus();
+}
+function eConfirmCustomPlace(){
+  const val=document.getElementById('e-customPlaceInput').value.trim();
+  if(!val) return;
+  eAddPlace('Z', val);
+  document.getElementById('e-customPlaceInput').value='';
+  document.getElementById('e-customPlaceWrap').style.display='none';
+}
 function setEndTimeNow(){
   const n=new Date();
   document.getElementById('walkEndTime').value=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
@@ -582,6 +621,8 @@ async function submitLog(){
   };
   await saveLog(entry);
   document.getElementById('noteInput').value='';
+  document.getElementById('customPlaceInput').value='';
+  document.getElementById('customPlaceWrap').style.display='none';
   routeSequence=[]; renderRouteSequence();
   document.getElementById('formCard').classList.remove('open');
 }
