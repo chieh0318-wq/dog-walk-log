@@ -1,0 +1,152 @@
+{
+  "last_updated": "2026-06-29",
+  "_schema_note": "baseline state for daily diff-check routine. Routine should only rewrite fields that materially changed since last_updated, then update last_updated.",
+  "holdings": {
+    "AVGO": {
+      "rvf": {"quality": 9, "alpha": 6, "confidence": 8.5},
+      "fundamental_signal": "🟢",
+      "fundamental_note": "Q2 FY26創紀錄財報，AI晶片營收$10.8B，Q3展望上修+84% YoY，OpenAI Jalapeño晶片合作",
+      "stage": "Stage 2 深回檔測試200MA",
+      "technical_note": "現價$365附近，距高點約-13~17%，需觀察是否守住200MA",
+      "price_ref": 365,
+      "last_key_event": "2026-06-28 Q2財報+Q3展望上修"
+    },
+    "ETN": {
+      "rvf": {"quality": 8.5, "alpha": 5.5, "confidence": 8},
+      "fundamental_signal": "🟢",
+      "fundamental_note": "Dana分割重組計畫，資料中心/電氣化長期成長故事不變",
+      "stage": "Stage 2 健康回檔",
+      "technical_note": "現價$402.68，距高點約-7.6%，短期震盪($+3.8%/-4.1%)",
+      "price_ref": 402.68,
+      "last_key_event": "2026-06-26 Mobility業務與Dana合併重組計畫"
+    },
+    "GOOGL": {
+      "rvf": {"quality": 9, "alpha": 6, "confidence": 8},
+      "fundamental_signal": "🟢",
+      "fundamental_note": "納入道瓊指數(6/29)，雲端backlog~$460B，2026資本支出$180-190B；6月股權融資新聞細節未確認",
+      "stage": "Stage 2 修正中",
+      "technical_note": "現價$338附近，距高點約-16%，跌破50MA仍在200MA之上",
+      "price_ref": 338,
+      "last_key_event": "2026-06-29 納入道瓊指數",
+      "open_items": ["6月股權融資消息細節待確認"]
+    },
+    "MSFT": {
+      "rvf": {"quality": 8.5, "alpha": 4, "confidence": 6},
+      "fundamental_signal": "🔴",
+      "fundamental_note": "AI資料中心資本支出激增侵蝕獲利能見度，6月單月-20%，YTD-35%+；簽20年Chevron電力協議(正向但未止跌)",
+      "stage": "Stage 3→4 明確轉壞",
+      "technical_note": "接近52週低點，跌勢未止穩",
+      "price_ref": 372.73,
+      "last_key_event": "2026-06-22 簽20年Chevron電力協議；跌勢持續惡化"
+    },
+    "MU": {
+      "rvf": {"quality": 7.5, "alpha": 7, "confidence": 7.5},
+      "fundamental_signal": "🟢",
+      "fundamental_note": "AI記憶體需求強勁，無重大新訊息",
+      "stage": "Stage 2 強勢",
+      "technical_note": "6/25創ATH $1255後回檔-6.69%，首次回檔可能形成1st base",
+      "price_ref": 1132,
+      "last_key_event": "2026-06-25 創歷史新高後獲利了結"
+    },
+    "NOK": {
+      "rvf": {"quality": 6, "alpha": 6.5, "confidence": 5},
+      "fundamental_signal": "🟡",
+      "fundamental_note": "基本面故事未確認轉壞，本輪無新訊息",
+      "stage": "Stage 2→3 轉壞",
+      "technical_note": "跌破前支撐$14，連續2週收黑，距高點-23%",
+      "price_ref": 13.0,
+      "last_key_event": "2026-06-02 創高後反轉下跌"
+    },
+    "ONDS": {
+      "rvf": {"quality": 4.5, "alpha": 7, "confidence": 4},
+      "fundamental_signal": "🟡",
+      "fundamental_note": "6月國防訂單>$40M，Q2累計>$150M動能仍強，但內部人賣股+股份註冊轉售引發波動",
+      "stage": "不明確，高波動衛星倉位",
+      "technical_note": "現價$7.83附近，距高點-48%，訊號矛盾",
+      "price_ref": 7.83,
+      "last_key_event": "2026-06-25 內部人賣股致單日-9.96%"
+    },
+    "ONTO": {
+      "rvf": {"quality": 8, "alpha": 7, "confidence": 8},
+      "fundamental_signal": "🟢",
+      "fundamental_note": "Dragonfly G5大單、Rigaku夥伴關係(含入股)、Q2展望上修8%($320-330M)；股價受半導體股整體賣壓拖累(非基本面轉壞)",
+      "stage": "Stage 2 領漲",
+      "technical_note": "6/25創高後-8.6%，健康回檔",
+      "price_ref": 322.52,
+      "last_key_event": "2026-06-?? Dragonfly G5+Rigaku合作消息，Q2展望上修"
+    },
+    "RMBS": {
+      "rvf": {"quality": 7.5, "alpha": 6, "confidence": 4.5},
+      "fundamental_signal": "🟡",
+      "fundamental_note": "基本面故事未確認轉壞，本輪無新訊息",
+      "stage": "Stage 3→4 結構破壞",
+      "technical_note": "短均線死亡交叉長均線，距高點-32%",
+      "price_ref": 115.30,
+      "last_key_event": "2026-06-03 創高後急跌"
+    },
+    "SEDG": {
+      "rvf": {"quality": 5, "alpha": 4, "confidence": 4},
+      "fundamental_signal": "🔴",
+      "fundamental_note": "CFO Asaf Alperovitz於5/31離職，過渡期至6/9結束，治理風險疊加",
+      "stage": "Stage 3/4 下跌中",
+      "technical_note": "6月單月-30.46%，分析師目標價低於現價",
+      "price_ref": 52.5,
+      "last_key_event": "2026-06-09 CFO離職過渡結束"
+    },
+    "SEI": {
+      "rvf": {"quality": 6.5, "alpha": 7.5, "confidence": 7.5},
+      "fundamental_signal": "🟢",
+      "fundamental_note": "長期合約擴大、大型融資到位、分析師目標價上修，動能持續",
+      "stage": "Stage 2 強勢",
+      "technical_note": "現價$74-80區間，距6/18高點約-7%",
+      "price_ref": 80,
+      "last_key_event": "2026-06-28 區間整理，趨勢未變"
+    },
+    "TMDX": {
+      "rvf": {"quality": 6.5, "alpha": 5, "confidence": 5},
+      "fundamental_signal": "🟢",
+      "fundamental_note": "10位分析師維持買進共識(6/18)，獨家技術護城河被重申，本輪無負面消息",
+      "stage": "Stage 4 明確下跌(技術面)",
+      "technical_note": "近52週低點，跌破200MA；基本面與技術面背離待觀察是否收斂",
+      "price_ref": 70,
+      "last_key_event": "2026-06-18 分析師維持買進共識"
+    },
+    "VST": {
+      "rvf": {"quality": 7, "alpha": 6, "confidence": 7},
+      "fundamental_signal": "🟢",
+      "fundamental_note": "AI用電需求題材不變，Morgan Stanley小幅下修目標價",
+      "stage": "Stage 2 回升",
+      "technical_note": "現價$163.49附近，正常波動，6/10低點後仍上漲",
+      "price_ref": 163.49,
+      "last_key_event": "2026-06-27 小幅回落，目標價小幅下修"
+    },
+    "AMKR": {
+      "rvf": {"quality": 6.5, "alpha": 7.5, "confidence": 7},
+      "fundamental_signal": "🟢",
+      "fundamental_note": "Q1營收+27.5%、EPS超預期39.8%，台積電簽10年先進封裝合作協議",
+      "stage": "Stage 2 深回檔",
+      "technical_note": "6/16創高$96.68後-19%，上週單週-8.5%，需觀察前高支撐",
+      "price_ref": 78.22,
+      "last_key_event": "2026-06-16 創高後獲利了結"
+    },
+    "GLW": {
+      "rvf": {"quality": 7.5, "alpha": 6, "confidence": 7.5},
+      "fundamental_signal": "🟢",
+      "fundamental_note": "Q1核心EPS+30%，與Meta簽$6B多年合約+2筆同等級超大規模客戶合約，Q2展望上修",
+      "stage": "Stage 2 健康",
+      "technical_note": "現價$220附近，6/18重回50MA之上",
+      "price_ref": 220.28,
+      "last_key_event": "2026-06 Meta $6B合約+Q1財報"
+    },
+    "NOW": {
+      "rvf": {"quality": 8.5, "alpha": 7, "confidence": 6},
+      "fundamental_signal": "🟢",
+      "fundamental_note": "Q1營收+22%全面超預期，Now Assist ACV目標$1B上修至$1.5B，>$100萬美元級客戶+130%",
+      "stage": "Stage 3/4 嚴重破壞",
+      "technical_note": "跌破全部均線(50MA$104/200MA$105)，12個月-55%，技術賣訊12/12；與基本面嚴重背離",
+      "price_ref": 95.04,
+      "last_key_event": "2026年內 持續下跌，基本面與股價背離為本清單最極端案例"
+    }
+  },
+  "known_divergences": ["NOK", "RMBS", "NOW", "TMDX"]
+}
